@@ -54,42 +54,18 @@ function getScoreColor(score) {
   if (score === 'B') return 'red';
   return '';
 }
-function calcMoney(g) {
-  let aa = 0, bb = 0;
-  if (+g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'] >= 1) aa = 500;
-  bb += (+g['8.1_3G拆台_數量 [Pipe(支)]'] || 0) * 150;
-  bb += (+g['8.1_3G拆台_數量 [室外型天線(支)]'] || 0) * 100;
-  bb += (+g['8.1_3G拆台_數量 [SMR(組)]'] || 0) * 300;
-  bb += (+g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'] || 0) * 250;
-  bb += (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0) * 200;
-  if (bb > 1500) bb = 1500;
-  return aa + bb;
-}
-function buildResl(g) {
-  let r = '';
-  r += g['1-1_鐵塔_角度'] === '合格' ? '鐵塔角度合格，' : '鐵塔角度調整*******，';
-  if (g['1-2_鐵塔_防墜器'] === '合格') r += '防墜器檢查合格，';
-  else if (g['1-2_鐵塔_防墜器'] === '無防墜器') r += '無防墜器，';
-  else if (g['1-2_鐵塔_防墜器'] !== '不需防墜器') r += '防墜器調整，';
-  if (g['2-1_拉線'] === '合格') r += `拉線(${g['拉線數量']}條${g['拉線種類']})檢查合格，`;
-  else r += `拉線(${g['拉線數量']}條${g['拉線種類']})${g['2-1_拉線']}${g['2-1-1_拉線_備註']}，`;
-  if (!g['4_保養選項']?.includes('未塗柏油漆')) r += '配件塗刷柏油漆保養，';
-  if (g['3-3.配件_備註']) r += g['3-3.配件_備註'] + '，';
-  if (g['4_其他_備註']) r += g['4_其他_備註'] + '，';
-  if (g['5_除草'] === '是') r += '以及除草';
-  return r.replace(/，$/, '。').replace(/。$/, '。') + '。';
-}
-
 function getSelectedYear() {
   const sel = document.getElementById('yearSelect').value;
-  return sel === 'custom' ? document.getElementById('customYear').value : sel;
+  return sel === 'custom' ? document.getElementById('customYear').value.trim() : sel;
 }
-
 document.getElementById('yearSelect').addEventListener('change', () => {
-  document.getElementById('customYear').style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
-  loadSheet();
+  const customInput = document.getElementById('customYear');
+  customInput.style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
+  if (customInput.style.display === 'none') loadSheet(); // 不是自訂就直接載入
 });
-document.getElementById('customYear').addEventListener('input', loadSheet);
+document.getElementById('customYear').addEventListener('input', () => {
+  if (getSelectedYear()) loadSheet();
+});
 
 const headerRow = document.getElementById('headerRow');
 const tableBody = document.getElementById('dataBody');
@@ -107,23 +83,34 @@ function loadSheet() {
     header: true,
     complete: function(res) {
       const year = getSelectedYear();
-      const rows = res.data.filter(r => r['年度設定'] === year);
+      const rows = res.data.filter(r => (r['年度設定'] || '').trim() === year);
       tableBody.innerHTML = '';
       rows.forEach(g => {
-        const 檢查日 = g['巡檢日期'] || g['時間戳記'];
+        const 檢查日 = g['巡檢日期']?.trim() || g['時間戳記'];
         const 西元檢查日期 = toDateOnly(檢查日);
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
         const 拆台 = g['8_3G拆台'] === '由施工股協助拆除' ? g['8_3G拆台'] + ' 施工人員: ' + g['8.2_3G拆台_施工人員'] : '';
-        const 錢錢 = calcMoney(g);
-        const resl = buildResl(g);
-        const data = [g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
-                      本次檢查, resl, '', '', 西元檢查日期, g['7_評分'], g['私密備註'],
-                      拆台, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
-                      g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
-                      g['8.1_3G拆台_數量 [SMR(組)]'], g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'],
-                      g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], 錢錢];
+        let aa = 0, bb = 0;
+        if (+g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'] >= 1) aa = 500;
+        bb += (+g['8.1_3G拆台_數量 [Pipe(支)]'] || 0) * 150;
+        bb += (+g['8.1_3G拆台_數量 [室外型天線(支)]'] || 0) * 100;
+        bb += (+g['8.1_3G拆台_數量 [SMR(組)]'] || 0) * 300;
+        bb += (+g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'] || 0) * 250;
+        bb += (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0) * 200;
+        if (bb > 1500) bb = 1500;
+        const 錢錢 = aa + bb;
+        const resl = '...'; // 可加 buildResl(g)
+
+        const data = [
+          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
+          本次檢查, resl, '', '', 西元檢查日期, g['7_評分'], g['私密備註'],
+          拆台, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
+          g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
+          g['8.1_3G拆台_數量 [SMR(組)]'], g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'],
+          g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], 錢錢
+        ];
         const tr = document.createElement('tr');
         data.forEach((v, i) => {
           const td = document.createElement('td');
