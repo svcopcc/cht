@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>站台年度檢查記錄</title>
+  <style>
+    body { font-family: sans-serif; background: #f6f6f6; padding: 1em; }
+    select, input[type="text"] { padding: 0.5em; font-size: 1em; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { padding: 0.5em; border: 1px solid #ccc; font-size: 0.9em; }
+    th { background-color: #e0e0e0; }
+    .score-red { background-color: #f8d7da; color: #a94442; }
+    .score-yellow { background-color: #fff3cd; color: #856404; }
+    .score-green { background-color: #d4edda; color: #155724; }
+    #debug { background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h2>📋 站台年度檢查記錄</h2>
+  <label>選擇年度：
+    <select id="yearSelector">
+      <option value="114" selected>114</option>
+      <option value="113">113</option>
+      <option value="112">112</option>
+      <option value="custom">其他（手動輸入）</option>
+    </select>
+    <input type="text" id="customYearInput" placeholder="輸入年度" style="display:none;" />
+  </label>
+
+  <div id="debug"></div>
+
+  <table id="dataTable">
+    <thead><tr id="tableHeader"></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/1ugs7DSY094iZuxkEaZZNQozSXGzSWFx_AUvh1IeTPq0/gviz/tq?tqx=out:json';
+    const gc = [];
+    let headers = [];
+    const yearSelector = document.getElementById('yearSelector');
+    const customInput = document.getElementById('customYearInput');
+    const tableBody = document.getElementById('tableBody');
+    const tableHeader = document.getElementById('tableHeader');
+    const debugDiv = document.getElementById('debug');
+
+    function logDebug(msg) {
+      console.log('[debug]', msg);
+      debugDiv.innerHTML += `<div>> ${msg}</div>`;
+    }
+
+    yearSelector.addEventListener('change', () => {
+      if (yearSelector.value === 'custom') {
+        customInput.style.display = 'inline-block';
+      } else {
+        customInput.style.display = 'none';
+        filterByYear(yearSelector.value);
+      }
+    });
+
+    customInput.addEventListener('input', () => {
+      filterByYear(customInput.value);
+    });
+
+    function filterByYear(year) {
+      const filtered = gc.filter(row => row['年度設定'] === year);
+      renderTable(filtered);
+      logDebug(`篩選年度 ${year}，共 ${filtered.length} 筆資料`);
+    }
+
+    function getScoreClass(score) {
+      switch (score) {
+        case 'S': return 'score-green';
+        case 'A': return 'score-yellow';
+        case 'B': return 'score-red';
+        default: return '';
+      }
+    }
+
+    function buildCheckNote(row) {
+      let note = '';
+      if (row['5_除草'] === '是') note += '已除草；';
+      if (row['2-1_拉線'] && row['2-1_拉線'].includes('調整')) note += '拉線需調整；';
+      if (row['3_配件 [3-1_伸張器]'] === '損壞') note += '伸張器損壞；';
+      if (row['3_配件 [3-2_警示管]'] === '損壞') note += '警示管損壞；';
+      return note;
+    }
+
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      tableHeader.innerHTML = '';
+      headers.forEach(field => {
+        const th = document.createElement('th');
+        th.textContent = field;
+        tableHeader.appendChild(th);
+      });
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        headers.forEach(field => {
+          const td = document.createElement('td');
+          td.textContent = row[field] || '';
+          if (field === '評分') td.className = getScoreClass(row[field]);
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+    }
+
+    async function fetchSheetJSON() {
+      logDebug('載入 JSON 資料中...');
+      const res = await fetch(sheetURL);
+      const text = await res.text();
+      const json = JSON.parse(text.substring(47).slice(0, -2));
+      headers = json.table.cols.map(col => col.label);
+      logDebug('欄位名稱：' + headers.join(', '));
+      json.table.rows.forEach(row => {
+        const obj = {};
+        row.c.forEach((cell, idx) => {
+          obj[headers[idx]] = cell ? cell.v : '';
+        });
+        gc.push(obj);
+      });
+      logDebug(`共載入 ${gc.length} 筆資料`);
+      filterByYear('114');
+    }
+
+    fetchSheetJSON();
+  </script>
+</body>
+</html>
