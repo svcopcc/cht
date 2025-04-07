@@ -29,6 +29,7 @@
 const sheetURL = 'https://docs.google.com/spreadsheets/d/1ugs7DSY094iZuxkEaZZNQozSXGzSWFx_AUvh1IeTPq0/gviz/tq?tqx=out:json';
 const gc = [];
 let headers = [];
+let yearKey = null;
 const debugDiv = document.getElementById('debug');
 const tableHeader = document.getElementById('tableHeader');
 const tableBody = document.getElementById('tableBody');
@@ -74,7 +75,9 @@ async function fetchSheet() {
   const json = JSON.parse(text.substring(47).slice(0, -2));
 
   headers = json.table.cols.map(col => col.label || '');
+  yearKey = headers.find(h => h.includes('年度設定')) || null;
   logDebug('取得欄位名稱：\n' + headers.join(', '));
+  logDebug('使用年度欄位：' + yearKey);
 
   json.table.rows.forEach(row => {
     const obj = {};
@@ -85,7 +88,10 @@ async function fetchSheet() {
   });
 
   logDebug(`共載入 ${gc.length} 筆資料`);
-  renderTable(gc);
+
+  const filtered = yearKey ? gc.filter(row => row[yearKey] == '114') : gc;
+  logDebug(`篩選年度 114，共 ${filtered.length} 筆資料`);
+  renderTable(filtered);
 }
 
 fetchSheet();
