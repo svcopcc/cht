@@ -1,15 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>站台檢查記錄（VBA彙整邏輯）</title>
+  <title>站台檢查記錄（完整VBA邏輯）</title>
   <style>
     body { font-family: sans-serif; background: #f6f6f6; padding: 1em; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; table-layout: auto; }
     thead th { position: sticky; top: 0; background-color: #e0e0e0; z-index: 2; }
     th, td { padding: 0.5em; border: 1px solid #ccc; font-size: 0.9em; background: #fff; }
+    td.tsCol { width: 1px !important; max-width: 1px !important; overflow: hidden; padding: 0; color: transparent; }
     .score-red { background-color: #f8d7da; color: #a94442; }
     .score-yellow { background-color: #fff3cd; color: #856404; }
     .score-green { background-color: #d4edda; color: #155724; }
@@ -17,7 +17,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台檢查（VBA 彙整邏輯）</h2>
+<h2>📋 站台檢查5（完整VBA payJane 邏輯）</h2>
 <label>選擇年度：
   <select id="yearSelector">
     <option value="114" selected>114</option>
@@ -59,6 +59,13 @@ customInput.addEventListener('input', () => {
   filterByYear(customInput.value);
 });
 
+function toTWYear(isoDateStr) {
+  if (!isoDateStr) return '';
+  const d = new Date(isoDateStr);
+  if (isNaN(d)) return '';
+  return `民國${d.getFullYear() - 1911}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
 function getScoreClass(score) {
   switch (score) {
     case 'S': return 'score-green';
@@ -68,45 +75,47 @@ function getScoreClass(score) {
   }
 }
 
+// 完整 payJane 邏輯模擬（簡版）：
 function buildImprovement(row) {
-  let result = [];
-
-  if (row['5_除草'] === '是') result.push('除草');
-  if (row['2-1_拉線'] && row['2-1_拉線'].includes('調整')) result.push('拉線需調整');
+  let notes = [];
 
   for (let i = 1; i <= 5; i++) {
-    const key = `1-1-1_鐵塔_角度_調整 [第${i}節]`;
-    if (row[key] && row[key] !== '正常') result.push(`鐵塔第${i}節需調整`);
+    const k = `1-1-1_鐵塔_角度_調整 [第${i}節]`;
+    if (row[k] && row[k] !== '正常') notes.push(`第${i}節鐵塔角度需${row[k]}`);
   }
 
-  const 配件對應 = {
+  if (row['2-1_拉線'] && row['2-1_拉線'].includes('調整')) notes.push('拉線調整');
+
+  const 補強 = row['2-1-1_拉線_調整或更換 [補強]'];
+  if (補強 && 補強 !== '無') notes.push('補強拉線');
+
+  const parts = {
     '3_配件 [3-1_伸張器]': '伸張器',
     '3_配件 [3-2_警示管]': '警示管',
     '3_配件 [3-3_下古]': '下古',
     '3_配件 [3-4_毛眼]': '毛眼',
     '3_配件 [3-5_繞線夾]': '繞線夾',
     '3_配件 [3-6_麻布]': '麻布',
-    '3_配件 [3-7_鋼索夾]': '鋼索夾'
+    '3_配件 [3-7_鋼索夾]': '鋼索夾',
   };
-
-  Object.entries(配件對應).forEach(([欄位, 名稱]) => {
-    if (row[欄位] && row[欄位] !== '合格') result.push(`${名稱}處理`);
+  Object.entries(parts).forEach(([k, name]) => {
+    if (row[k] && row[k] !== '合格') notes.push(`${name}異常`);
   });
 
-  return result.join('、') + (result.length ? '。' : '');
+  if (row['5_除草'] === '是') notes.push('除草');
+
+  const extra = row['4_其他_備註'];
+  if (extra) notes.push(extra);
+
+  return notes.join('、') + (notes.length ? '。' : '');
 }
 
 function renderTable(data) {
   tableHeader.innerHTML = '';
   tableBody.innerHTML = '';
-  const 顯示欄位 = [
-    '時間戳記','站台名稱','轄區(高雄、鳳山....)','NON-型式','NON-高度(米)',
-    '上期維護','本次檢查','檢查與改善','完成日期','4_其他_備註',
-    '巡檢日期','7_評分','私密備註','8_3G拆台','8.2_3G拆台_施工人員',
-    '8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]','8.1_3G拆台_數量 [Pipe(支)]','8.1_3G拆台_數量 [室外型天線(支)]',
-    '8.1_3G拆台_數量 [SMR(組)]','8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]','8.1_3G拆台_數量 [電錶箱/配電箱(只)]','錢錢'
-  ];
-  顯示欄位.forEach(h => {
+  const 欄位 = ['時間戳記','站台名稱','轄區(高雄、鳳山....)','NON-型式','NON-高度(米)','上期維護','本次檢查','檢查與改善','完成日期','4_其他_備註','巡檢日期','7_評分','私密備註'];
+
+  欄位.forEach(h => {
     const th = document.createElement('th');
     th.textContent = h;
     tableHeader.appendChild(th);
@@ -114,10 +123,14 @@ function renderTable(data) {
 
   data.forEach(row => {
     const tr = document.createElement('tr');
-    顯示欄位.forEach(h => {
+    欄位.forEach(h => {
       const td = document.createElement('td');
+      if (h === '時間戳記') td.className = 'tsCol';
       if (h === '檢查與改善') {
         td.textContent = buildImprovement(row);
+      } else if (h === '巡檢日期') {
+        const realDate = row[h] || row['時間戳記'];
+        td.textContent = toTWYear(realDate);
       } else {
         td.textContent = row[h] || '';
         if (h === '7_評分') td.className = getScoreClass(row[h]);
