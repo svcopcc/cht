@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>站台檢查記錄（完整VBA邏輯）</title>
+  <title>站台檢查記錄（resl + 民國年）</title>
   <style>
     body { font-family: sans-serif; background: #f6f6f6; padding: 1em; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; table-layout: auto; }
@@ -17,7 +17,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台檢查5（完整VBA payJane 邏輯）</h2>
+<h2>📋 站台檢查（resl + 民國年邏輯）</h2>
 <label>選擇年度：
   <select id="yearSelector">
     <option value="114" selected>114</option>
@@ -59,7 +59,7 @@ customInput.addEventListener('input', () => {
   filterByYear(customInput.value);
 });
 
-function toTWYear(isoDateStr) {
+function toTWDate(isoDateStr) {
   if (!isoDateStr) return '';
   const d = new Date(isoDateStr);
   if (isNaN(d)) return '';
@@ -75,39 +75,83 @@ function getScoreClass(score) {
   }
 }
 
-// 完整 payJane 邏輯模擬（簡版）：
 function buildImprovement(row) {
-  let notes = [];
+  let resl = '';
+  const 型態 = row['鐵塔型態'];
+  const flagNon = 型態 && !型態.includes('四角');
 
-  for (let i = 1; i <= 5; i++) {
-    const k = `1-1-1_鐵塔_角度_調整 [第${i}節]`;
-    if (row[k] && row[k] !== '正常') notes.push(`第${i}節鐵塔角度需${row[k]}`);
+  if (!flagNon) {
+    // 四角鐵塔邏輯
+    const poyang = row['4_保養選項'] || '';
+    const needPaint = !poyang.includes('未塗柏油漆');
+    const paintText = needPaint ? '配件塗刷柏油漆保養，' : '';
+
+    resl += (row['1-1_鐵塔_角度'] === '合格') ? '鐵塔角度合格，' : '鐵塔角度調整*******，';
+
+    const 防墜 = row['1-2_鐵塔_防墜器'];
+    if (防墜 === '合格') resl += '防墜器檢查合格，';
+    else if (防墜 === '無防墜器') resl += '無防墜器，';
+    else if (防墜 === '不需防墜器') resl += '';
+    else resl += '防墜器調整，';
+
+    if (row['2-1_拉線'] === '合格') {
+      if (row['拉線種類'] === 'SP') {
+        resl += `拉線(${row['拉線數量']})檢查合格，`;
+      } else {
+        resl += `拉線(${row['拉線數量']}條${row['拉線種類']})檢查合格，`;
+      }
+    } else {
+      if (row['拉線種類'] === 'SP') {
+        resl += `拉線(${row['拉線數量']})${row['2-1_拉線']}${row['2-1-1_拉線_備註']}，`;
+      } else {
+        resl += `拉線(${row['拉線數量']}條${row['拉線種類']})${row['2-1_拉線']}${row['2-1-1_拉線_備註']}，`;
+      }
+    }
+
+    const 配件分類 = row['配件巡檢'];
+    if (配件分類 === '配件-全部合格-柏油漆保養') {
+      resl += paintText;
+    } else if (配件分類 === '配件-全部合格-鋼索夾') {
+      resl += paintText + '鋼索夾檢查調緊，';
+    } else {
+      resl += paintText + (row['3-3-1.配件_備註_選擇'] || '') + '，';
+    }
+
+    if (row['拉線種類'] === '*') resl = '';
+
+    if (row['3-3.配件_備註']) resl += row['3-3.配件_備註'] + '，';
+    if (row['4_其他_備註']) resl += row['4_其他_備註'];
+
+    if (row['5_除草'] === '是') {
+      resl = resl.replace(/，$/, '');
+      resl += '以及除草';
+    }
+  } else {
+    // 非四角鐵塔邏輯
+    resl = row['NON-型式'] + '檢查合格，';
+    const arr = (row['NON-檢查與改善'] || '').split(', ').filter(s => s && s !== 'NOO');
+
+    if (arr.includes('鐵塔檢查合格')) {
+      resl = '鐵塔檢查合格，';
+      arr.splice(arr.indexOf('鐵塔檢查合格'), 1);
+    }
+    if (arr.includes('拉線XX條XX絞線合格')) {
+      resl += `拉線(${row['NON-拉線數量']}條${row['NON-拉線種類']})檢查合格，`;
+      arr.splice(arr.indexOf('拉線XX條XX絞線合格'), 1);
+    }
+
+    resl += arr.join('，');
+    if (row['5_除草'] === '是') {
+      resl = resl.replace(/，$/, '');
+      resl += '以及除草';
+    }
   }
 
-  if (row['2-1_拉線'] && row['2-1_拉線'].includes('調整')) notes.push('拉線調整');
+  resl = resl.replace(/，，/g, '，').replace(/。。，/g, '，').replace(/，。/g, '，').replace(/，，/g, '，');
+  if (resl.endsWith('，')) resl = resl.slice(0, -1) + '。';
+  else if (!resl.endsWith('。')) resl += '。';
 
-  const 補強 = row['2-1-1_拉線_調整或更換 [補強]'];
-  if (補強 && 補強 !== '無') notes.push('補強拉線');
-
-  const parts = {
-    '3_配件 [3-1_伸張器]': '伸張器',
-    '3_配件 [3-2_警示管]': '警示管',
-    '3_配件 [3-3_下古]': '下古',
-    '3_配件 [3-4_毛眼]': '毛眼',
-    '3_配件 [3-5_繞線夾]': '繞線夾',
-    '3_配件 [3-6_麻布]': '麻布',
-    '3_配件 [3-7_鋼索夾]': '鋼索夾',
-  };
-  Object.entries(parts).forEach(([k, name]) => {
-    if (row[k] && row[k] !== '合格') notes.push(`${name}異常`);
-  });
-
-  if (row['5_除草'] === '是') notes.push('除草');
-
-  const extra = row['4_其他_備註'];
-  if (extra) notes.push(extra);
-
-  return notes.join('、') + (notes.length ? '。' : '');
+  return resl;
 }
 
 function renderTable(data) {
@@ -128,9 +172,9 @@ function renderTable(data) {
       if (h === '時間戳記') td.className = 'tsCol';
       if (h === '檢查與改善') {
         td.textContent = buildImprovement(row);
-      } else if (h === '巡檢日期') {
-        const realDate = row[h] || row['時間戳記'];
-        td.textContent = toTWYear(realDate);
+      } else if (h === '本次檢查') {
+        const dateSrc = row['巡檢日期'] || row['時間戳記'];
+        td.textContent = toTWDate(dateSrc);
       } else {
         td.textContent = row[h] || '';
         if (h === '7_評分') td.className = getScoreClass(row[h]);
