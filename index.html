@@ -4,40 +4,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>站台年度檢查記錄</title>
+  <title>站台檢查記錄（VBA彙整邏輯）</title>
   <style>
     body { font-family: sans-serif; background: #f6f6f6; padding: 1em; }
-    select, input[type="text"] { padding: 0.5em; font-size: 1em; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; table-layout: auto; }
-    th, td { padding: 0.5em; border: 1px solid #ccc; font-size: 0.9em; text-align: left; }
-    th { background-color: #e0e0e0; }
+    thead th { position: sticky; top: 0; background-color: #e0e0e0; z-index: 2; }
+    th, td { padding: 0.5em; border: 1px solid #ccc; font-size: 0.9em; background: #fff; }
     .score-red { background-color: #f8d7da; color: #a94442; }
     .score-yellow { background-color: #fff3cd; color: #856404; }
     .score-green { background-color: #d4edda; color: #155724; }
-    #debug { background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap; }
+    #debug { background: #fffbe6; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <h2>📋 站台年度檢查記錄</h2>
-  <div id="debug"></div>
-  <table id="dataTable">
-    <thead><tr id="tableHeader"></tr></thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+<h2>📋 站台檢查（VBA 彙整邏輯）</h2>
+<label>選擇年度：
+  <select id="yearSelector">
+    <option value="114" selected>114</option>
+    <option value="113">113</option>
+    <option value="112">112</option>
+    <option value="custom">其他（手動輸入）</option>
+  </select>
+  <input type="text" id="customYearInput" placeholder="輸入年度" style="display:none;" />
+</label>
+<div id="debug"></div>
+<table id="dataTable">
+  <thead><tr id="tableHeader"></tr></thead>
+  <tbody id="tableBody"></tbody>
+</table>
 
 <script>
 const sheetURL = 'https://docs.google.com/spreadsheets/d/1ugs7DSY094iZuxkEaZZNQozSXGzSWFx_AUvh1IeTPq0/gviz/tq?tqx=out:json';
 const gc = [];
-let headers = [];
-let yearKey = null;
-const debugDiv = document.getElementById('debug');
+let headers = [], yearKey = null;
 const tableHeader = document.getElementById('tableHeader');
 const tableBody = document.getElementById('tableBody');
+const debugDiv = document.getElementById('debug');
+const yearSelector = document.getElementById('yearSelector');
+const customInput = document.getElementById('customYearInput');
 
 function logDebug(msg) {
-  console.log('[debug]', msg);
   debugDiv.innerHTML += '> ' + msg + '\n';
 }
+
+yearSelector.addEventListener('change', () => {
+  if (yearSelector.value === 'custom') {
+    customInput.style.display = 'inline-block';
+  } else {
+    customInput.style.display = 'none';
+    filterByYear(yearSelector.value);
+  }
+});
+customInput.addEventListener('input', () => {
+  filterByYear(customInput.value);
+});
 
 function getScoreClass(score) {
   switch (score) {
@@ -48,37 +68,80 @@ function getScoreClass(score) {
   }
 }
 
+function buildImprovement(row) {
+  let result = [];
+
+  if (row['5_除草'] === '是') result.push('除草');
+  if (row['2-1_拉線'] && row['2-1_拉線'].includes('調整')) result.push('拉線需調整');
+
+  for (let i = 1; i <= 5; i++) {
+    const key = `1-1-1_鐵塔_角度_調整 [第${i}節]`;
+    if (row[key] && row[key] !== '正常') result.push(`鐵塔第${i}節需調整`);
+  }
+
+  const 配件對應 = {
+    '3_配件 [3-1_伸張器]': '伸張器',
+    '3_配件 [3-2_警示管]': '警示管',
+    '3_配件 [3-3_下古]': '下古',
+    '3_配件 [3-4_毛眼]': '毛眼',
+    '3_配件 [3-5_繞線夾]': '繞線夾',
+    '3_配件 [3-6_麻布]': '麻布',
+    '3_配件 [3-7_鋼索夾]': '鋼索夾'
+  };
+
+  Object.entries(配件對應).forEach(([欄位, 名稱]) => {
+    if (row[欄位] && row[欄位] !== '合格') result.push(`${名稱}處理`);
+  });
+
+  return result.join('、') + (result.length ? '。' : '');
+}
+
 function renderTable(data) {
-  tableBody.innerHTML = '';
   tableHeader.innerHTML = '';
-  headers.forEach(h => {
+  tableBody.innerHTML = '';
+  const 顯示欄位 = [
+    '時間戳記','站台名稱','轄區(高雄、鳳山....)','NON-型式','NON-高度(米)',
+    '上期維護','本次檢查','檢查與改善','完成日期','4_其他_備註',
+    '巡檢日期','7_評分','私密備註','8_3G拆台','8.2_3G拆台_施工人員',
+    '8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]','8.1_3G拆台_數量 [Pipe(支)]','8.1_3G拆台_數量 [室外型天線(支)]',
+    '8.1_3G拆台_數量 [SMR(組)]','8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]','8.1_3G拆台_數量 [電錶箱/配電箱(只)]','錢錢'
+  ];
+  顯示欄位.forEach(h => {
     const th = document.createElement('th');
     th.textContent = h;
     tableHeader.appendChild(th);
   });
+
   data.forEach(row => {
     const tr = document.createElement('tr');
-    headers.forEach(h => {
+    顯示欄位.forEach(h => {
       const td = document.createElement('td');
-      td.textContent = row[h] || '';
-      if (h.includes('評分')) td.className = getScoreClass(row[h]);
+      if (h === '檢查與改善') {
+        td.textContent = buildImprovement(row);
+      } else {
+        td.textContent = row[h] || '';
+        if (h === '7_評分') td.className = getScoreClass(row[h]);
+      }
       tr.appendChild(td);
     });
     tableBody.appendChild(tr);
   });
 }
 
+function filterByYear(year) {
+  const filtered = yearKey ? gc.filter(row => row[yearKey] == year) : gc;
+  logDebug(`篩選年度 ${year}，共 ${filtered.length} 筆資料`);
+  renderTable(filtered);
+}
+
 async function fetchSheet() {
-  logDebug('開始載入 Google Sheets JSON...');
   const res = await fetch(sheetURL);
   const text = await res.text();
   const json = JSON.parse(text.substring(47).slice(0, -2));
-
   headers = json.table.cols.map(col => col.label || '');
   yearKey = headers.find(h => h.includes('年度設定')) || null;
   logDebug('取得欄位名稱：\n' + headers.join(', '));
   logDebug('使用年度欄位：' + yearKey);
-
   json.table.rows.forEach(row => {
     const obj = {};
     row.c.forEach((cell, i) => {
@@ -86,12 +149,8 @@ async function fetchSheet() {
     });
     gc.push(obj);
   });
-
   logDebug(`共載入 ${gc.length} 筆資料`);
-
-  const filtered = yearKey ? gc.filter(row => row[yearKey] == '114') : gc;
-  logDebug(`篩選年度 114，共 ${filtered.length} 筆資料`);
-  renderTable(filtered);
+  filterByYear('114');
 }
 
 fetchSheet();
