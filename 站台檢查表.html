@@ -2,19 +2,21 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>站台檢查表（修正日期版）</title>
+  <meta charset="UTF-8">
+  <title>站台檢查表</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
     th.sticky { position: sticky; top: 0; background: #eee; z-index: 2; }
     td.tsCol { width: 1px; max-width: 1px; font-size: 0.1em; color: transparent; }
+    td.green { background-color: #d4edda; }
+    td.yellow { background-color: #fff3cd; }
+    td.red { background-color: #f8d7da; }
   </style>
 </head>
 <body>
 <h2>📋 站台年度檢查紀錄</h2>
-
 <label>選擇年度：
   <select id="yearSelect">
     <option value="114">114</option>
@@ -34,28 +36,35 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
-const headers = [
-  '時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善',
-  '完成日期','備   註','西元檢查日期','評分','私密備註',
-  '3G拆台紀錄/施工人員','主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)',
-  'SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'
-];
+const headers = ['時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善',
+  '完成日期','備   註','西元檢查日期','評分','私密備註','3G拆台紀錄/施工人員',
+  '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'];
 
-function toTWDateFromDateStr(dateStr) {
-  const d = new Date(dateStr);
-  if (isNaN(d)) return '';
-  const y = d.getFullYear() - 1911;
-  const m = d.getMonth() + 1;
-  const dd = d.getDate();
-  return `${y}/${m}/${dd}`;
+function toTWDate(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
 }
-
-function toDateOnlyString(isoStr) {
-  const d = new Date(isoStr);
-  if (isNaN(d)) return '';
-  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+function toDateOnly(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }
-
+function getScoreColor(score) {
+  if (score === 'S') return 'green';
+  if (score === 'A') return 'yellow';
+  if (score === 'B') return 'red';
+  return '';
+}
+function calcMoney(g) {
+  let aa = 0, bb = 0;
+  if (+g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'] >= 1) aa = 500;
+  bb += (+g['8.1_3G拆台_數量 [Pipe(支)]'] || 0) * 150;
+  bb += (+g['8.1_3G拆台_數量 [室外型天線(支)]'] || 0) * 100;
+  bb += (+g['8.1_3G拆台_數量 [SMR(組)]'] || 0) * 300;
+  bb += (+g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'] || 0) * 250;
+  bb += (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0) * 200;
+  if (bb > 1500) bb = 1500;
+  return aa + bb;
+}
 function buildResl(g) {
   let r = '';
   r += g['1-1_鐵塔_角度'] === '合格' ? '鐵塔角度合格，' : '鐵塔角度調整*******，';
@@ -101,19 +110,26 @@ function loadSheet() {
       const rows = res.data.filter(r => r['年度設定'] === year);
       tableBody.innerHTML = '';
       rows.forEach(g => {
-        const 檢查日原始 = g['巡檢日期'] || g['時間戳記'];
-        const 西元檢查日期 = toDateOnlyString(檢查日原始);
-        const 本次檢查 = toTWDateFromDateStr(西元檢查日期);
+        const 檢查日 = g['巡檢日期'] || g['時間戳記'];
+        const 西元檢查日期 = toDateOnly(檢查日);
+        const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
+        const 拆台 = g['8_3G拆台'] === '由施工股協助拆除' ? g['8_3G拆台'] + ' 施工人員: ' + g['8.2_3G拆台_施工人員'] : '';
+        const 錢錢 = calcMoney(g);
         const resl = buildResl(g);
-        const data = [g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '', 本次檢查, resl,
-                      '', '', 西元檢查日期, g['7_評分'], g['私密備註'], '', '', '', '', '', '', '', ''];
+        const data = [g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
+                      本次檢查, resl, '', '', 西元檢查日期, g['7_評分'], g['私密備註'],
+                      拆台, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
+                      g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
+                      g['8.1_3G拆台_數量 [SMR(組)]'], g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'],
+                      g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], 錢錢];
         const tr = document.createElement('tr');
         data.forEach((v, i) => {
           const td = document.createElement('td');
           td.textContent = v || '';
           if (i === 0) td.classList.add('tsCol');
+          if (headers[i] === '評分') td.classList.add(getScoreColor(v));
           tr.appendChild(td);
         });
         tableBody.appendChild(tr);
