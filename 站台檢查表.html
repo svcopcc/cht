@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -61,11 +60,9 @@ function getSelectedYear() {
 document.getElementById('yearSelect').addEventListener('change', () => {
   const customInput = document.getElementById('customYear');
   customInput.style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
-  if (customInput.style.display === 'none') loadSheet(); // 不是自訂就直接載入
+  loadSheet();
 });
-document.getElementById('customYear').addEventListener('input', () => {
-  if (getSelectedYear()) loadSheet();
-});
+document.getElementById('customYear').addEventListener('input', loadSheet);
 
 const headerRow = document.getElementById('headerRow');
 const tableBody = document.getElementById('dataBody');
@@ -86,7 +83,8 @@ function loadSheet() {
       const rows = res.data.filter(r => (r['年度設定'] || '').trim() === year);
       tableBody.innerHTML = '';
       rows.forEach(g => {
-        const 檢查日 = g['巡檢日期']?.trim() || g['時間戳記'];
+        const 檢查日原始 = (g['巡檢日期'] || '').trim();
+        const 檢查日 = 檢查日原始 || g['時間戳記'];
         const 西元檢查日期 = toDateOnly(檢查日);
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
@@ -101,7 +99,7 @@ function loadSheet() {
         bb += (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0) * 200;
         if (bb > 1500) bb = 1500;
         const 錢錢 = aa + bb;
-        const resl = '...'; // 可加 buildResl(g)
+        const resl = '...';
 
         const data = [
           g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
