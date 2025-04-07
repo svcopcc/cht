@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>站台檢查表</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
+    th.sticky { position: sticky; top: 0; background: #eee; }
+    td.tsCol { width: 1px; max-width: 1px; font-size: 0.1em; color: transparent; }
+  </style>
+</head>
+<body>
+<h2>📋 站台檢查紀錄（修正版）</h2>
+<label>選擇年度：
+  <select id="yearSelect">
+    <option value="114" selected>114</option>
+    <option value="113">113</option>
+    <option value="112">112</option>
+    <option value="custom">自訂</option>
+  </select>
+  <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
+</label>
+
+<table id="dataTable">
+  <thead><tr id="headerRow"></tr></thead>
+  <tbody id="dataBody"></tbody>
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
+
+const headers = [
+  '時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善',
+  '完成日期','備   註','西元檢查日期','評分','私密備註','3G拆台紀錄/施工人員',
+  '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'
+];
+
+function toTWDate(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : (d.getFullYear() - 1911) + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+}
+function toDateOnly(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+}
+function getSelectedYear() {
+  const sel = document.getElementById('yearSelect').value;
+  return sel === 'custom' ? document.getElementById('customYear').value.trim() : sel;
+}
+document.getElementById('yearSelect').addEventListener('change', () => {
+  const customInput = document.getElementById('customYear');
+  customInput.style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
+  loadSheet();
+});
+document.getElementById('customYear').addEventListener('input', loadSheet);
+
+const headerRow = document.getElementById('headerRow');
+const tableBody = document.getElementById('dataBody');
+headers.forEach(h => {
+  const th = document.createElement('th');
+  th.textContent = h;
+  th.classList.add('sticky');
+  if (h === '時間戳記') th.classList.add('tsCol');
+  headerRow.appendChild(th);
+});
+
+function loadSheet() {
+  Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    complete: function(res) {
+      const year = getSelectedYear();
+      const rows = res.data.filter(r => (r['年度設定'] || '').trim() === year);
+      tableBody.innerHTML = '';
+      rows.forEach(g => {
+        const timestamp = g['時間戳記'] || '';
+        const rawCheckDate = g['巡檢日期']?.trim();
+        const checkDate = rawCheckDate !== '' && rawCheckDate !== undefined ? rawCheckDate : timestamp;
+        const 西元檢查日期 = toDateOnly(checkDate);
+        const 本次檢查 = toTWDate(西元檢查日期);
+        const data = [
+          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], '', '', '', 本次檢查, '',
+          '', '', 西元檢查日期, g['7_評分'], g['私密備註'],
+          g['8_3G拆台'], g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
+          g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
+          g['8.1_3G拆台_數量 [SMR(組)]'], g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'],
+          g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], ''
+        ];
+        const tr = document.createElement('tr');
+        data.forEach((v, i) => {
+          const td = document.createElement('td');
+          td.textContent = v || '';
+          if (i === 0) td.classList.add('tsCol');
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+    }
+  });
+}
+loadSheet();
+</script>
+</body>
+</html>
