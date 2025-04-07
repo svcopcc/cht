@@ -1,1 +1,115 @@
-<!-- 這是完整版 HTML，已包含正確 resl + 日期處理邏輯 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>站台檢查表（修正完成）</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
+    th.sticky { position: sticky; top: 0; background: #eee; z-index: 2; }
+    td.score-S { background: #d4edda; }
+    td.score-A { background: #fff3cd; }
+    td.score-B { background: #f8d7da; }
+    td.tsCol { width: 1px !important; max-width: 1px !important; overflow: hidden; font-size: 0.5em; color: transparent; }
+  </style>
+</head>
+<body>
+<h2>📋 站台年度檢查紀錄</h2>
+<label>選擇年度：
+  <select id="yearSelect">
+    <option value="114">114</option>
+    <option value="113">113</option>
+    <option value="112">112</option>
+    <option value="custom">自訂</option>
+  </select>
+  <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
+</label>
+<p id="debug"></p>
+<table id="dataTable">
+  <thead><tr id="headerRow"></tr></thead>
+  <tbody id="dataBody"></tbody>
+</table>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
+const headers = ['時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善','完成日期','備   註','西元檢查日期','評分','私密備註','3G拆台紀錄/施工人員','主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'];
+const headerRow = document.getElementById('headerRow');
+const tableBody = document.getElementById('dataBody');
+headers.forEach(h => {
+  const th = document.createElement('th');
+  th.textContent = h;
+  th.classList.add("sticky");
+  if (h === '時間戳記') th.classList.add("tsCol");
+  headerRow.appendChild(th);
+});
+function getSelectedYear() {
+  const y = document.getElementById('yearSelect').value;
+  return y === 'custom' ? document.getElementById('customYear').value : y;
+}
+document.getElementById('yearSelect').addEventListener('change', () => {
+  document.getElementById('customYear').style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
+  loadSheet();
+});
+document.getElementById('customYear').addEventListener('input', loadSheet);
+function toTWDate(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+function toDateOnly(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? '' : `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+function buildResl(g) {
+  let resl = '';
+  resl += g['1-1_鐵塔_角度'] === '合格' ? '鐵塔角度合格，' : '鐵塔角度調整*******，';
+  const 防墜 = g['1-2_鐵塔_防墜器'];
+  if (防墜 === '合格') resl += '防墜器檢查合格，';
+  else if (防墜 === '無防墜器') resl += '無防墜器，';
+  else if (防墜 !== '不需防墜器') resl += '防墜器調整，';
+  const 拉線 = g['2-1_拉線'] || '', 數量 = g['拉線數量'] || '', 種類 = g['拉線種類'] || '', 備註 = g['2-1-1_拉線_備註'] || '';
+  if (拉線 === '合格') resl += `拉線(${數量}條${種類})檢查合格，`;
+  else resl += `拉線(${數量}條${種類})${拉線}${備註}，`;
+  if (!g['4_保養選項']?.includes('未塗柏油漆')) resl += '配件塗刷柏油漆保養，';
+  resl += g['3-3.配件_備註'] || '';
+  if (g['4_其他_備註']) resl += '，' + g['4_其他_備註'];
+  if (g['5_除草'] === '是') resl += '以及除草';
+  return resl.replace(/，$/, '。').replace(/。$/, '。') + '。';
+}
+function loadSheet() {
+  Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    complete: function(result) {
+      const year = getSelectedYear();
+      const rows = result.data.filter(g => g['年度設定'] === year);
+      document.getElementById('debug')?.textContent = `載入 ${rows.length} 筆`;
+      tableBody.innerHTML = '';
+      rows.forEach(g => {
+        const row = document.createElement('tr');
+        const 檢查日 = g['巡檢日期'] || g['時間戳記'];
+        const 西元檢查 = toDateOnly(檢查日);
+        const 本次檢查 = toTWDate(檢查日);
+        const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
+        const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
+        const resl = buildResl(g);
+        const data = [
+          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
+          本次檢查, resl, '', '', 西元檢查, g['7_評分'], g['私密備註'], '', '', '', '', '', '', '', ''
+        ];
+        data.forEach((text, i) => {
+          const td = document.createElement('td');
+          td.textContent = text || '';
+          if (i === 0) td.classList.add('tsCol');
+          if (headers[i] === '評分') td.classList.add('score-' + text);
+          row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+      });
+    }
+  });
+}
+loadSheet();
+</script>
+</body>
+</html>
