@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>站台檢查表（修正版）</title>
+  <meta charset="UTF-8" />
+  <title>站台檢查表（修正完成版）</title>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
@@ -16,9 +17,21 @@
 </head>
 <body>
 <h2>📋 站台年度檢查紀錄</h2>
+
+<label>選擇年度：
+  <select id="yearSelect">
+    <option value="114">114</option>
+    <option value="113">113</option>
+    <option value="112">112</option>
+    <option value="custom">自訂</option>
+  </select>
+  <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
+</label>
+
+<p id="debug"></p>
 <table id="dataTable">
   <thead><tr id="headerRow"></tr></thead>
-  <tbody id="tableBody"></tbody>
+  <tbody id="dataBody"></tbody>
 </table>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -32,7 +45,8 @@ const headers = [
 ];
 
 const headerRow = document.getElementById('headerRow');
-const tableBody = document.getElementById('tableBody');
+const tableBody = document.getElementById('dataBody');
+
 headers.forEach(h => {
   const th = document.createElement('th');
   th.textContent = h;
@@ -41,93 +55,69 @@ headers.forEach(h => {
   headerRow.appendChild(th);
 });
 
-function toROC(isoStr) {
+document.getElementById('yearSelect').addEventListener('change', () => {
+  document.getElementById('customYear').style.display =
+    document.getElementById('yearSelect').value === 'custom' ? 'inline' : 'none';
+  loadSheet();
+});
+document.getElementById('customYear').addEventListener('input', loadSheet);
+
+function getSelectedYear() {
+  const y = document.getElementById('yearSelect').value;
+  return y === 'custom' ? document.getElementById('customYear').value : y;
+}
+
+function toTWShortDate(isoStr) {
   const d = new Date(isoStr);
   if (isNaN(d)) return '';
   return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-function toDateOnly(isoStr) {
+function extractDate(isoStr) {
   const d = new Date(isoStr);
   if (isNaN(d)) return '';
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-function buildResl(g) {
-  let resl = '';
-  if (g['1-1_鐵塔_角度'] === '合格') resl += '鐵塔角度合格，';
-  else resl += '鐵塔角度調整*******，';
-  if (g['1-2_鐵塔_防墜器'] === '合格') resl += '防墜器檢查合格，';
-  else if (g['1-2_鐵塔_防墜器'] === '無防墜器') resl += '無防墜器，';
-  else if (g['1-2_鐵塔_防墜器'] !== '不需防墜器') resl += '防墜器調整，';
+function loadSheet() {
+  Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    complete: function(result) {
+      const year = getSelectedYear();
+      const rows = result.data.filter(g => g['年度設定'] === year);
+      document.getElementById('debug').textContent = `載入 ${rows.length} 筆`;
+      tableBody.innerHTML = '';
 
-  if (g['2-1_拉線'] === '合格') {
-    if (g['拉線種類'] === 'SP') resl += `拉線(${g['拉線數量']})檢查合格，`;
-    else resl += `拉線(${g['拉線數量']}條${g['拉線種類']})檢查合格，`;
-  } else {
-    if (g['拉線種類'] === 'SP')
-      resl += `拉線(${g['拉線數量']})${g['2-1_拉線']}${g['2-1-1_拉線_備註']}，`;
-    else
-      resl += `拉線(${g['拉線數量']}條${g['拉線種類']})${g['2-1_拉線']}${g['2-1-1_拉線_備註']}，`;
-  }
+      rows.forEach(g => {
+        const row = document.createElement('tr');
+        const dateSource = g['巡檢日期'] || g['時間戳記'];
+        const 本次檢查 = toTWShortDate(dateSource);
+        const 西元檢查日期 = extractDate(dateSource);
 
-  const 保養 = g['4_保養選項'] || '';
-  const 配件註記 = g['3-3.配件_備註'] || '';
-  const 其他註記 = g['4_其他_備註'] || '';
-  if (!保養.includes('未塗柏油漆')) resl += '配件塗刷柏油漆保養，';
-  resl += 配件註記 + (其他註記 ? '，' + 其他註記 : '');
-  if (g['5_除草'] === '是') resl += '以及除草';
-  return resl.replace(/，$/, '。').replace(/。$/, '。') + '。';
-}
+        const data = [
+          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'],
+          `${g['鐵塔節數']}節 (${g['鐵塔型態']})`,
+          g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1),
+          '', 本次檢查, '', '', '', 西元檢查日期,
+          g['7_評分'], g['私密備註'], '', '', '', '', '', '', '', ''
+        ];
 
-function calcMoney(g) {
-  let aa = 0, bb = 0;
-  if (+g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'] >= 1) aa = 500;
-  bb += Math.min(150 * (+g['8.1_3G拆台_數量 [Pipe(支)]'] || 0), 1500);
-  bb += 100 * (+g['8.1_3G拆台_數量 [室外型天線(支)]'] || 0);
-  bb += 300 * (+g['8.1_3G拆台_數量 [SMR(組)]'] || 0);
-  bb += 250 * (+g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'] || 0);
-  bb += 200 * (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0);
-  bb = Math.min(bb, 1500);
-  return aa + bb;
-}
+        data.forEach((text, i) => {
+          const td = document.createElement('td');
+          td.textContent = text || '';
+          if (i === 0) td.classList.add('tsCol');
+          if (headers[i] === '評分') td.classList.add('score-' + text);
+          row.appendChild(td);
+        });
 
-Papa.parse(csvUrl, {
-  download: true,
-  header: true,
-  complete: function(result) {
-    const rows = result.data;
-    rows.forEach(g => {
-      const row = document.createElement('tr');
-      const 檢查日期 = g['巡檢日期'] || g['時間戳記'];
-      const 本次檢查 = 檢查日期 ? toROC(檢查日期) : '';
-      const 西元日期 = 檢查日期 ? toDateOnly(檢查日期) : '';
-      const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
-      const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
-      const 錢錢 = calcMoney(g);
-      const 三拆人員 = g['8_3G拆台'] === '由施工股協助拆除' ? `${g['8_3G拆台']} 施工人員: ${g['8.2_3G拆台_施工人員']}` : '';
-      const resl = buildResl(g);
-
-      const data = [
-        g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
-        本次檢查, resl, '', '', 西元日期, g['7_評分'], g['私密備註'],
-        三拆人員, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'], g['8.1_3G拆台_數量 [Pipe(支)]'],
-        g['8.1_3G拆台_數量 [室外型天線(支)]'], g['8.1_3G拆台_數量 [SMR(組)]'],
-        g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'], g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], 錢錢
-      ];
-
-      data.forEach((text, i) => {
-        const td = document.createElement('td');
-        td.textContent = text || '';
-        if (i === 0) td.classList.add('tsCol');
-        if (headers[i] === '評分') td.classList.add('score-' + text);
-        row.appendChild(td);
+        tableBody.appendChild(row);
       });
+    }
+  });
+}
 
-      tableBody.appendChild(row);
-    });
-  }
-});
+loadSheet();
 </script>
 </body>
 </html>
