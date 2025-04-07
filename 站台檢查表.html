@@ -26,7 +26,6 @@
   <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
 </label>
 
-<p id="debug"></p>
 <table id="dataTable">
   <thead><tr id="headerRow"></tr></thead>
   <tbody id="dataBody"></tbody>
@@ -74,6 +73,38 @@ headers.forEach(h => {
   headerRow.appendChild(th);
 });
 
+function buildResl(g) {
+  let resl = '';
+  const 拉線種類 = g['拉線種類'] || '';
+  const 拉線數量 = g['拉線數量'] || '';
+  const 拉線備註 = g['2-1-1_拉線_備註'] || '';
+  const 保養選項 = g['4_保養選項'] || '';
+  const 配件備註選擇 = g['3-3.配件_備註'] || '';
+  const 其他備註 = g['4_其他_備註'] || '';
+
+  resl += g['1-1_鐵塔_角度'] === '合格' ? '鐵塔角度合格，' : '鐵塔角度調整*******，';
+  if (g['1-2_鐵塔_防墜器'] === '合格') resl += '防墜器檢查合格，';
+  else if (g['1-2_鐵塔_防墜器'] === '無防墜器') resl += '無防墜器，';
+  else if (g['1-2_鐵塔_防墜器'] !== '不需防墜器') resl += '防墜器調整，';
+
+  if (g['2-1_拉線'] === '合格') {
+    resl += `拉線(${拉線數量}條${拉線種類})檢查合格，`;
+  } else {
+    resl += `拉線(${拉線數量}條${拉線種類})${g['2-1_拉線']}${拉線備註}，`;
+  }
+
+  if (!保養選項.includes("未塗柏油漆")) {
+    resl += '配件塗刷柏油漆保養，';
+  }
+
+  if (配件備註選擇) resl += 配件備註選擇 + '，';
+  if (其他備註) resl += 其他備註 + '，';
+  if (g['5_除草'] === '是') resl += '以及除草';
+
+  resl = resl.replace(/，$/, '。').replace(/。$/, '。');
+  return resl;
+}
+
 function loadSheet() {
   Papa.parse(csvUrl, {
     download: true,
@@ -83,9 +114,8 @@ function loadSheet() {
       const rows = res.data.filter(r => (r['年度設定'] || '').trim() === year);
       tableBody.innerHTML = '';
       rows.forEach(g => {
-        const 檢查日原始 = (g['巡檢日期'] || '').trim();
-        const 檢查日 = 檢查日原始 || g['時間戳記'];
-        const 西元檢查日期 = toDateOnly(檢查日);
+        const rawDate = (g['巡檢日期'] || '').trim() || g['時間戳記'];
+        const 西元檢查日期 = toDateOnly(rawDate);
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
@@ -99,7 +129,7 @@ function loadSheet() {
         bb += (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0) * 200;
         if (bb > 1500) bb = 1500;
         const 錢錢 = aa + bb;
-        const resl = '...';
+        const resl = buildResl(g);
 
         const data = [
           g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
