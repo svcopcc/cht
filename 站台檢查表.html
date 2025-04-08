@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V24</h2>
+<h2>📋 站台年度檢查紀錄V25</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -154,6 +154,8 @@ function loadSheet() {
   Papa.parse(csvUrl, {
     download: true,
     header: true,
+    skipEmptyLines: true,
+    newline: "\n",  // ✅ 正確解析欄位中帶有換行的內容
     complete: function(res) {
       logDebug(`✅ 成功載入 ${res.data.length} 筆資料`);
       if (box) box.style.display = 'none';
@@ -246,7 +248,7 @@ function renderTable(rows) {
         let 拆台 = '';
         const 拆台內容 = g['8_3G拆台'] || '';
         const 拆台前兩字 = 拆台內容.substring(0, 2);
-        const 施工人員 = g['8.2_3G拆台_施工人員'] || g['8.2_3G拆台_施工人員 '] || '';
+        const 施工人員 = (g['8.2_3G拆台_施工人員'] || '').replace(/\n/g, ', ');
 
         console.log('🧪 站名：', g['站台名稱'], '｜拆台欄位：', 拆台內容, '｜施工人員原始值：', g['8.2_3G拆台_施工人員']);
 
