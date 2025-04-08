@@ -114,8 +114,18 @@ function loadSheet() {
       const rows = res.data.filter(r => (r['年度設定'] || '').trim() === year);
       tableBody.innerHTML = '';
       rows.forEach(g => {
-        const rawDate = (g['巡檢日期'] || '').trim() || g['時間戳記'];
-        const 西元檢查日期 = toDateOnly(rawDate);
+        let 西元檢查日期來源 = '';
+        let 西元檢查日期 = '';
+        
+        // 判斷來源：若有巡檢日期，則用它；否則使用時間戳記（只取年月日）
+        if ((g['巡檢日期'] || '').trim()) {
+          西元檢查日期 = toDateOnly(g['巡檢日期']);
+          西元檢查日期來源 = '巡檢日期';
+        } else {
+          西元檢查日期 = toDateOnly(g['時間戳記']);
+          西元檢查日期來源 = '時間戳記';
+        }
+
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
