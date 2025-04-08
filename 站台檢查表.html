@@ -136,15 +136,24 @@ function loadSheet() {
     header: true,
     complete: function(res) {
       const year = getSelectedYear();
-      const rows = res.data.filter(r => (r['年度設定'] || '').trim() === year);
+      const rows = res.data.filter(g => (g['年度設定'] || '').trim() === year);
       tableBody.innerHTML = '';
+
+      if (rows.length === 0) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = headers.length;
+        td.textContent = '無資料';
+        td.style.textAlign = 'center';
+        tr.appendChild(td);
+        tableBody.appendChild(tr);
+        return;
+      }
+
       rows.forEach(g => {
-        
-        
         let 西元檢查日期來源 = '';
         let 西元檢查日期 = '';
-        
-        // 判斷來源：若有巡檢日期，則用它；否則使用時間戳記（只取年月日）
+
         if ((g['巡檢日期'] || '').trim()) {
           西元檢查日期 = toDateOnly(g['巡檢日期']);
           西元檢查日期來源 = '巡檢日期';
@@ -152,8 +161,9 @@ function loadSheet() {
           西元檢查日期 = toDateOnly(g['時間戳記']);
           西元檢查日期來源 = '時間戳記';
         }
-        console.log(` ${g['站台名稱']} 使用日期來源：${西元檢查日期來源} → ${西元檢查日期}（原始時間戳記：${g['時間戳記']}）`);
-  
+
+        console.log(`📌 ${g['站台名稱']} 使用日期來源：${西元檢查日期來源} → ${西元檢查日期}（原始時間戳記：${g['時間戳記']}）`);
+
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
@@ -178,6 +188,7 @@ function loadSheet() {
           g['8.1_3G拆台_數量 [SMR(組)]'], g['8.1_3G拆台_數量 [Mini shelter/小型機櫃(只)]'],
           g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], 錢錢
         ];
+
         const tr = document.createElement('tr');
         data.forEach((v, i) => {
           const td = document.createElement('td');
@@ -191,6 +202,7 @@ function loadSheet() {
     }
   });
 }
+
 loadSheet();
 </script>
 </body>
