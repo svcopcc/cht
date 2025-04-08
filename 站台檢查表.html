@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V19</h2>
+<h2>📋 站台年度檢查紀錄V20</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -241,7 +241,21 @@ function renderTable(rows) {
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
-        const 拆台 = g['8_3G拆台'] === '由施工股協助拆除' ? g['8_3G拆台'] + ' 施工人員: ' + g['8.2_3G拆台_施工人員'] : '';
+       
+        //✅3G拆台紀錄/施工人員
+        const 私密備註 = g['私密備註'] || g['私密備註 '] || '';
+        let 拆台 = '';
+        const 拆台內容 = g['8_3G拆台'] || '';
+        const 拆台前兩字 = 拆台內容.substring(0, 2);
+        if (拆台前兩字 === '由施') {
+          拆台 = 拆台內容 + ' 施工人員: ' + (g['8.2_3G拆台_施工人員'] || '');
+        } else if (拆台前兩字 === '基維') {
+          拆台 = 拆台內容;
+        } else {
+          拆台 = ''; // 其他狀況留空
+        }
+
+    
         const 私密備註 = g['私密備註'] || g['私密備註 '] || '';
         let aa = 0, bb = 0;
         if (+g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'] >= 1) aa = 500;
