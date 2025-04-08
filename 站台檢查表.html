@@ -194,7 +194,10 @@ function loadSheet() {
           const td = document.createElement('td');
           td.textContent = v || '';
           if (i === 0) td.classList.add('tsCol');
-          if (headers[i] === '評分') td.classList.add(getScoreColor(v));
+          if (headers[i] === '評分') {
+            const cls = getScoreColor(v);
+            if (cls) td.classList.add(cls); // 防止空值
+          }
           tr.appendChild(td);
         });
         tableBody.appendChild(tr);
