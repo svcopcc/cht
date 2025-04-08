@@ -15,7 +15,13 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V12</h2>
+<h2>📋 站台年度檢查紀錄V13</h2>
+
+<!-- 載入黃色區 -->
+<div id="loadingBox" style="background: yellow; padding: 10px; font-weight: bold; margin-top: 1em;">
+  ⏳ 正在讀取資料中，請稍候...
+</div>
+  
 <label>選擇年度：
   <select id="yearSelect">
     <option value="114">114</option>
@@ -25,6 +31,7 @@
   </select>
   <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
 </label>
+
 
 <!-- 篩選控制區 -->
 <div style="margin-bottom: 1em;">
@@ -143,6 +150,9 @@ function buildResl(g) {
 
   
 function loadSheet() {
+  // ✅ 顯示載入框 黃色載入區
+  document.getElementById('loadingBox').style.display = 'block'; // ✅ 顯示載入框
+  
   Papa.parse(csvUrl, {
     download: true,
     header: true,
