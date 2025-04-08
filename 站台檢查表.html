@@ -45,27 +45,29 @@ function toTWDate(iso) {
 function toDateOnly(dateStr) {
   if (!dateStr || typeof dateStr !== 'string') return '';
 
-  // 將「全形空格」等異常字元轉半形
-  dateStr = dateStr.replace(/\u3000/g, ' ').trim();
+  // 移除全形空格、標準化格式
+  dateStr = dateStr.replace(/\u3000/g, ' ').replace(/\s+/g, ' ').trim();
 
-  // 嘗試原生解析
+  // 先試試看 new Date 能不能吃（有些情況下會支援）
   let d = new Date(dateStr);
-
-  // 若解析失敗，處理「中文上午／下午」格式
-  if (isNaN(d)) {
-    const match = dateStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(上午|下午)\s+(\d{1,2}):(\d{2}):(\d{2})$/);
-    if (match) {
-      let [_, y, m, d2, ampm, h, min, sec] = match;
-      h = parseInt(h, 10);
-      if (ampm === '下午' && h < 12) h += 12;
-      if (ampm === '上午' && h === 12) h = 0;
-      d = new Date(`${y}-${m}-${d2}T${String(h).padStart(2, '0')}:${min}:${sec}`);
-    }
+  if (!isNaN(d)) {
+    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
   }
 
-  // 最終轉為 YYYY/MM/DD 格式
+  // 嘗試手動解析「2025/1/22 下午5:33:58」
+  const match = dateStr.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\s*(上午|下午)?\s*(\d{1,2}):(\d{2}):(\d{2})$/);
+  if (match) {
+    let [_, y, m, d2, ampm, h, min, sec] = match;
+    h = parseInt(h, 10);
+    if (ampm === '下午' && h < 12) h += 12;
+    if (ampm === '上午' && h === 12) h = 0;
+    const iso = `${y}-${m.padStart?.(2, '0') || m}-${d2.padStart?.(2, '0') || d2}T${String(h).padStart(2, '0')}:${min}:${sec}`;
+    d = new Date(iso);
+  }
+
   return isNaN(d) ? '' : `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }
+
 
 
 function getScoreColor(score) {
@@ -149,6 +151,7 @@ function loadSheet() {
         }
         console.log(`📌 ${g['站台名稱']} 使用日期來源：${g['巡檢日期'] ? '巡檢日期' : '巡檢日期'} → ${西元檢查日期}`);
         console.log(`📌 ${g['站台名稱']} 使用日期來源：${西元檢查日期來源} → ${西元檢查日期}（原始時間戳記：${g['時間戳記']}）`);
+        console.log(`📌📌 ${g['站台名稱']} 使用日期來源：${西元檢查日期來源} → ${西元檢查日期}（原始時間戳記：${g['時間戳記']}）`);
   
         const 本次檢查 = toTWDate(西元檢查日期);
         const 型式 = `${g['鐵塔節數']}節 (${g['鐵塔型態']})`;
