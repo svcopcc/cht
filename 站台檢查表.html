@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V14</h2>
+<h2>📋 站台年度檢查紀錄V16</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -28,16 +28,13 @@
     <option value="custom">自訂</option>
   </select>
   <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
+  <button id="customYearBtn" style="display:none;">執行</button> <!-- ✅ 新增按鈕 -->
 </label>
 
 
 <!-- 篩選控制區 -->
 <div style="margin-bottom: 1em;">
-  <button onclick="filterByYear('114')">114</button>
-  <button onclick="filterByYear('113')">113</button>
-  <button onclick="filterByYear('112')">112</button>
-  <input id="customYear" type="text" placeholder="自訂年度" />
-  <button onclick="filterByCustomYear()">執行</button>
+  <button onclick="filterByCustomYear()">按鈕區</button>
 </div>
   
   
@@ -149,22 +146,44 @@ function buildResl(g) {
   
 function loadSheet() {
   logDebug('📦 開始載入資料...');
-  document.getElementById('loadingBox').style.display = 'block';
+  const box = document.getElementById('loadingBox');
+  if (box) box.style.display = 'block';
 
   Papa.parse(csvUrl, {
     download: true,
     header: true,
     complete: function(res) {
       logDebug(`✅ 成功載入 ${res.data.length} 筆資料`);
-      document.getElementById('loadingBox').style.display = 'none';
+      if (box) box.style.display = 'none';
 
       allRows = res.data;
       renderTable(allRows);
     }
   });
 }
+  
+//--------
+document.getElementById('yearSelect').addEventListener('change', () => {
+  const sel = document.getElementById('yearSelect').value;
+  const customInput = document.getElementById('customYear');
+  const customBtn = document.getElementById('customYearBtn');
 
+  if (sel === 'custom') {
+    customInput.style.display = 'inline';
+    customBtn.style.display = 'inline';
+  } else {
+    customInput.style.display = 'none';
+    customBtn.style.display = 'none';
+    filterByYear(sel); // ✅ 選擇固定年度，立即篩選
+  }
+});
 
+document.getElementById('customYearBtn').addEventListener('click', () => {
+  const year = document.getElementById('customYear').value.trim();
+  filterByYear(year);
+});
+
+//--------
   
 loadSheet();
 
