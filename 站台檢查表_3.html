@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>站台年度檢查記錄</title>
+  <style>
+    body { font-family: sans-serif; background: #f6f6f6; padding: 1em; }
+    select, input[type="text"] { padding: 0.5em; font-size: 1em; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; table-layout: auto; }
+    th, td { padding: 0.5em; border: 1px solid #ccc; font-size: 0.9em; text-align: left; }
+    th { background-color: #e0e0e0; }
+    .score-red { background-color: #f8d7da; color: #a94442; }
+    .score-yellow { background-color: #fff3cd; color: #856404; }
+    .score-green { background-color: #d4edda; color: #155724; }
+    #debug { background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>📋 站台年度檢查記錄</h2>
+  <div id="debug"></div>
+  <table id="dataTable">
+    <thead><tr id="tableHeader"></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+<script>
+const sheetURL = 'https://docs.google.com/spreadsheets/d/1ugs7DSY094iZuxkEaZZNQozSXGzSWFx_AUvh1IeTPq0/gviz/tq?tqx=out:json';
+const gc = [];
+let headers = [];
+let yearKey = null;
+const debugDiv = document.getElementById('debug');
+const tableHeader = document.getElementById('tableHeader');
+const tableBody = document.getElementById('tableBody');
+
+function logDebug(msg) {
+  console.log('[debug]', msg);
+  debugDiv.innerHTML += '> ' + msg + '\n';
+}
+
+function getScoreClass(score) {
+  switch (score) {
+    case 'S': return 'score-green';
+    case 'A': return 'score-yellow';
+    case 'B': return 'score-red';
+    default: return '';
+  }
+}
+
+function renderTable(data) {
+  tableBody.innerHTML = '';
+  tableHeader.innerHTML = '';
+  headers.forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    tableHeader.appendChild(th);
+  });
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    headers.forEach(h => {
+      const td = document.createElement('td');
+      td.textContent = row[h] || '';
+      if (h.includes('評分')) td.className = getScoreClass(row[h]);
+      tr.appendChild(td);
+    });
+    tableBody.appendChild(tr);
+  });
+}
+
+async function fetchSheet() {
+  logDebug('開始載入 Google Sheets JSON...');
+  const res = await fetch(sheetURL);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
+
+  headers = json.table.cols.map(col => col.label || '');
+  yearKey = headers.find(h => h.includes('年度設定')) || null;
+  logDebug('取得欄位名稱：\n' + headers.join(', '));
+  logDebug('使用年度欄位：' + yearKey);
+
+  json.table.rows.forEach(row => {
+    const obj = {};
+    row.c.forEach((cell, i) => {
+      obj[headers[i]] = cell ? cell.v : '';
+    });
+    gc.push(obj);
+  });
+
+  logDebug(`共載入 ${gc.length} 筆資料`);
+
+  const filtered = yearKey ? gc.filter(row => row[yearKey] == '114') : gc;
+  logDebug(`篩選年度 114，共 ${filtered.length} 筆資料`);
+  renderTable(filtered);
+}
+
+fetchSheet();
+</script>
+</body>
+</html>
