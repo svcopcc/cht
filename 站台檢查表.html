@@ -243,7 +243,6 @@ function renderTable(rows) {
         const 高度 = g['鐵塔節數'] === '1.5' ? 8.7 : isNaN(g['鐵塔節數']) ? '*' : (+g['鐵塔節數'] * 5.5).toFixed(1);
        
         //✅3G拆台紀錄/施工人員
-        const 私密備註 = g['私密備註'] || g['私密備註 '] || '';
         let 拆台 = '';
         const 拆台內容 = g['8_3G拆台'] || '';
         const 拆台前兩字 = 拆台內容.substring(0, 2);
