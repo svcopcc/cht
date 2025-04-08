@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V18</h2>
+<h2>📋 站台年度檢查紀錄V19</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -46,7 +46,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 let allRows = [];
-const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
+//const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
+//✅ 隱藏原始 Google Sheet 連結
+const csvUrl = 'https://script.google.com/macros/s/AKfycbxtNmgzoQxqZHqrz9am2x_lzF-atVEfUx06Eqq5Td_3iR8hyjYRjeP-5ocM9P9G9sgq/exec'; 
 const headers = ['時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善',
   '完成日期','備   註','西元檢查日期','評分','私密備註','3G拆台紀錄/施工人員',
   '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'];
