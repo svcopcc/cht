@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V25</h2>
+<h2>📋 站台年度檢查紀錄V26</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -156,6 +156,13 @@ function loadSheet() {
     header: true,
     skipEmptyLines: true,
     newline: "\n",  // ✅ 正確解析欄位中帶有換行的內容
+    transform: function(value, column) {
+      // ✅ 將欄位內部的換行符號處理掉
+      if (typeof value === 'string') {
+          return value.replace(/\r?\n|\r/g, ', ');
+        }
+        return value;
+    },
     complete: function(res) {
       logDebug(`✅ 成功載入 ${res.data.length} 筆資料`);
       if (box) box.style.display = 'none';
