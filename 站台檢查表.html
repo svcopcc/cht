@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V16</h2>
+<h2>📋 站台年度檢查紀錄V17</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -93,11 +93,11 @@ function getSelectedYear() {
   const sel = document.getElementById('yearSelect').value;
   return sel === 'custom' ? document.getElementById('customYear').value.trim() : sel;
 }
-document.getElementById('yearSelect').addEventListener('change', () => {
-  const customInput = document.getElementById('customYear');
-  customInput.style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
-  loadSheet();
-});
+//document.getElementById('yearSelect').addEventListener('change', () => {
+//  const customInput = document.getElementById('customYear');
+//  customInput.style.display = getSelectedYear() === 'custom' ? 'inline' : 'none';
+//  loadSheet();
+//});
 document.getElementById('customYear').addEventListener('input', loadSheet);
 
 const headerRow = document.getElementById('headerRow');
