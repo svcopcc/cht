@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V29</h2>
+<h2>📋 站台年度檢查紀錄V30</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -278,10 +278,12 @@ function renderTable(rows) {
         bb += (+g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'] || 0) * 200;
         if (bb > 1500) bb = 1500;
         const 錢錢 = aa + bb;
-        let resl = buildResl(g);
 
-        // ✅ 若為其他非鐵，改用 NON 欄位
-        if ((g['鐵塔節數'] || '').substring(0, 4) === '其他非鐵') {
+        // ✅ 判斷一般或非鐵，產出 resl
+        let resl = '';
+        const is非鐵 = (g['鐵塔節數'] || '').substring(0, 4) === '其他非鐵';
+        
+        if (is非鐵) {
           型式 = g['NON-型式'] || '';
           高度 = g['NON-高度(米)'] || '';
         
@@ -289,31 +291,34 @@ function renderTable(rows) {
           let non_check = '';
         
           原始改善.forEach(txt => {
-            if (txt.includes('檢查合格')) {
-              if (txt.includes('拉線')) {
-                const qty = g['NON-拉線數量'] || '';
-                const type = g['NON-拉線種類'] || '';
-                non_check += `拉線${qty}條${type}檢查合格，`;
-              } else {
-                non_check += `${型式}檢查合格，`;
-              }
+            if (txt.includes('拉線') && txt.includes('檢查合格')) {
+              const qty = g['NON-拉線數量'] || '';
+              const type = g['NON-拉線種類'] || '';
+              non_check += `拉線${qty}條${type}檢查合格，`;
+            } else if (txt.includes('檢查合格')) {
+              non_check += `${g['NON-型式'] || ''}檢查合格，`;
             } else {
               non_check += txt + '，';
             }
           });
         
-          // 加上共用備註區
-          const 共用備註 = [
-            g['3-3.配件_備註'],
-            g['4_其他_備註'],
-            g['6_其他事項'],
-            g['3-3-1.配件_備註_選擇']
-          ].filter(Boolean).join('，');
-        
-          const 除草判斷 = g['5_除草'] === '是' ? '以及除草' : '';
-        
-          resl = non_check + (共用備註 ? `，${共用備註}` : '') + (除草判斷 ? `，${除草判斷}` : '') + '。';
+          resl = non_check;
+        } else {
+          resl = g['檢查與改善'] || '';
         }
+        
+        // ✅ 共用備註區（無論一般或非鐵都要加）
+        const 共用備註 = [
+          g['3-3.配件_備註'],
+          g['4_其他_備註'],
+          g['6_其他事項'],
+          g['3-3-1.配件_備註_選擇']
+        ].filter(Boolean).join('，');
+        const 除草判斷 = g['5_除草'] === '是' ? '以及除草' : '';
+        resl += (共用備註 ? `，${共用備註}` : '') + (除草判斷 ? `，${除草判斷}` : '');
+        
+        // ✅ 清理重複標點、補上句點
+        resl = resl.replace(/，{2,}/g, '，').replace(/，$/, '。').replace(/。$/, '。');
 
     
         const data = [
