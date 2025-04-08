@@ -45,12 +45,14 @@ function toTWDate(iso) {
 function toDateOnly(dateStr) {
   if (!dateStr || typeof dateStr !== 'string') return '';
 
+  // 將「全形空格」等異常字元轉半形
+  dateStr = dateStr.replace(/\u3000/g, ' ').trim();
+
   // 嘗試原生解析
   let d = new Date(dateStr);
 
-  // 若解析失敗，手動處理中文「上午／下午」格式
+  // 若解析失敗，處理「中文上午／下午」格式
   if (isNaN(d)) {
-    // 例如：2025/4/2 下午 4:40:40
     const match = dateStr.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s+(上午|下午)\s+(\d{1,2}):(\d{2}):(\d{2})$/);
     if (match) {
       let [_, y, m, d2, ampm, h, min, sec] = match;
@@ -61,8 +63,10 @@ function toDateOnly(dateStr) {
     }
   }
 
+  // 最終轉為 YYYY/MM/DD 格式
   return isNaN(d) ? '' : `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }
+
 
 function getScoreColor(score) {
   if (score === 'S') return 'green';
