@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V17</h2>
+<h2>📋 站台年度檢查紀錄V18</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -156,8 +156,15 @@ function loadSheet() {
       logDebug(`✅ 成功載入 ${res.data.length} 筆資料`);
       if (box) box.style.display = 'none';
 
+      // ✅ 儲存所有資料
       allRows = res.data;
-      renderTable(allRows);
+
+      // ✅👉👉👉 [預設只顯示年度設定為 114 的資料]
+      // 👉 如要更換預設年度，請改這裡的值
+      const defaultYear = '114';
+      filterByYear(defaultYear);
+      
+      //renderTable(allRows);
     }
   });
 }
