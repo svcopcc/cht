@@ -26,7 +26,7 @@
   <input type="text" id="customYear" placeholder="輸入年度" style="display:none;">
 </label>
 
-  //除錯區
+<!-- 篩選控制區 -->
 <div style="margin-bottom: 1em;">
   <span style="background: yellow; padding: 0.5em;">除錯區</span><br/>
   <button onclick="filterByYear('114')">114</button>
@@ -141,28 +141,52 @@ function buildResl(g) {
   return resl;
 }
 
+  
 function loadSheet() {
   Papa.parse(csvUrl, {
     download: true,
     header: true,
     complete: function(res) {
-      const year = getSelectedYear();
-      const rows = res.data.filter(g => (g['年度設定'] || '').trim() === year);
-      tableBody.innerHTML = '';
+      allRows = res.data;         // 儲存全部資料（後續篩選會用）
+      renderTable(allRows);       // 預設載入全部資料
+    }
+  });
+}
 
-      if (rows.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = headers.length;
-        td.textContent = '無資料';
-        td.style.textAlign = 'center';
-        tr.appendChild(td);
-        tableBody.appendChild(tr);
-        return;
-      }
 
-      rows.forEach(g => {
-        let 西元檢查日期來源 = '';
+  
+loadSheet();
+
+let allRows = [];
+function filterByYear(year) {
+  const filtered = allRows.filter(g => (g['年度設定'] || '').trim() === year);
+  renderTable(filtered);
+}
+
+function filterByCustomYear() {
+  const year = document.getElementById('customYear').value.trim();
+  const filtered = allRows.filter(g => (g['年度設定'] || '').trim() === year);
+  renderTable(filtered);
+}
+
+function renderTable(rows) {
+  tableBody.innerHTML = '';
+
+  if (!rows.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = headers.length;
+    td.textContent = '無資料';
+    td.style.textAlign = 'center';
+    td.style.background = '#fff3cd';
+    tr.appendChild(td);
+    tableBody.appendChild(tr);
+    return;
+  }
+
+  rows.forEach(g => {
+    // ✅ 貼上你 loadSheet() 裡的 rows.forEach(g => { ... }) 的原始內容
+    let 西元檢查日期來源 = '';
         let 西元檢查日期 = '';
 
         if ((g['巡檢日期'] || '').trim()) {
@@ -212,13 +236,8 @@ function loadSheet() {
           tr.appendChild(td);
         });
         tableBody.appendChild(tr);
-      });
-    }
   });
 }
-
-loadSheet();
-
 
 
   
