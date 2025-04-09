@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V49</h2>
+<h2>📋 站台年度檢查紀錄V50</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -58,6 +58,13 @@ const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkY
 const headers = ['時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善',
   '完成日期','備   註','西元檢查日期','評分','私密備註','3G拆台紀錄/施工人員',
   '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'];
+
+<!-- 預設隱藏 -->
+// 預設要隱藏的欄位名稱
+const hiddenCols = ['時間戳記','完成日期','西元檢查日期','私密備註','3G拆台紀錄/施工人員',
+  '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)',
+  '電錶箱/配電箱(只)','錢錢'];
+<!-- #END_預設隱藏 -->
 
 function toTWDate(iso) {
   const d = new Date(iso);
@@ -361,12 +368,7 @@ function renderTable(rows) {
 
         const tr = document.createElement('tr');
 
-        <!-- 預設隱藏 -->
-        // 預設要隱藏的欄位名稱
-        const hiddenCols = ['時間戳記','完成日期','西元檢查日期','私密備註','3G拆台紀錄/施工人員',
-          '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)',
-          '電錶箱/配電箱(只)','錢錢'];
-        <!-- #END_預設隱藏 -->
+        
                
         data.forEach((v, i) => {
           const td = document.createElement('td');
