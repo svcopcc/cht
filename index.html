@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.64');
+  logDebug('✅ 目前版本為2025.4.9.v.65');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -379,7 +379,9 @@ function renderTable(rows) {
           resl += '。'; // 若沒有句點，就補上
         }
 
-        const 上期維護 = gcuMap[g['基地台名稱']] || '';
+        //const 上期維護 = gcuMap[g['基地台名稱']] || '';
+        const baseName = (g['基地台名稱'] || '').trim(); // 去除空白避免找不到
+        const 上期維護 = gcuMap[baseName] || '';
     
         const data = [
           g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, 上期維護,
@@ -522,6 +524,9 @@ function loadGcuSheet(defaultYear) {
         }
       });
       console.log('✅ GCU 已建立比對 map：', gcuMap);
+      logDebug(`✅ GCU 已建立比對 map，共 ${Object.keys(gcuMap).length} 筆`);
+      logDebug(`📎 將使用年度 ${year_gcu} 的上期維護資料進行比對`);
+      
       // ✅ 渲染主資料表（等 gcuMap 準備好再做）
       filterByYear(defaultYear); 
     }
