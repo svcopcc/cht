@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.62');
+  logDebug('✅ 目前版本為2025.4.9.v.63');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -506,7 +506,7 @@ const gcuUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGt73fpm3hhrIrs
 let gcuMap = {};
 let year_gcu = '114'; // 🔁 可自訂指定要比對哪個年度的資料 //自訂資料
 
-function loadGcuSheet() {
+function loadGcuSheet(defaultYear) {
   Papa.parse(gcuUrl, {
     download: true,
     header: true,
@@ -521,12 +521,12 @@ function loadGcuSheet() {
         }
       });
       console.log('✅ GCU 已建立比對 map：', gcuMap);
-      // 👇 重新渲染一次畫面，讓上期維護欄填入資料
-      const currentYear = getSelectedYear();
-      filterByYear(currentYear);
+      // ✅ 渲染主資料表（等 gcuMap 準備好再做）
+      filterByYear(defaultYear); 
     }
   });
 }
+
 <!-- END_ 📌 第二份 Google 表單資料（gcu）處理邏輯 上期維護 -->
   
 </script>
