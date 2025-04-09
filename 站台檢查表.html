@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V32</h2>
+<h2>📋 站台年度檢查紀錄V33</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -296,7 +296,7 @@ function renderTable(rows) {
               const qty = g['NON-拉線數量'] || '';
               const type = g['NON-拉線種類'] || '';
               non_check += `拉線${qty}條${type}檢查合格，`;
-            } else if (/檢查合格/.test(txt)) {
+            } else if (/XX檢查合格/.test(txt)) {
               non_check += `${g['NON-型式'] || ''}檢查合格，`;
             } else {
               otherItems.push(txt);
