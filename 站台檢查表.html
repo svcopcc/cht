@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V33</h2>
+<h2>📋 站台年度檢查紀錄V34</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -292,10 +292,10 @@ function renderTable(rows) {
           let otherItems = [];
           
           原始改善.forEach(txt => {
-            if (/拉線.*條.*絞線.*檢查合格/.test(txt)) {
+            if (txt === '拉線XX條XX絞線合格') {
               const qty = g['NON-拉線數量'] || '';
               const type = g['NON-拉線種類'] || '';
-              non_check += `拉線${qty}條${type}檢查合格，`;
+              non_check += `拉線${qty}條${type}檢查合格（原始填寫：${txt}），`;
             } else if (/XX檢查合格/.test(txt)) {
               non_check += `${g['NON-型式'] || ''}檢查合格，`;
             } else {
