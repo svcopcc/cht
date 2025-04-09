@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V31</h2>
+<h2>📋 站台年度檢查紀錄V32</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -286,23 +286,26 @@ function renderTable(rows) {
         if (is非鐵) {
           型式 = g['NON-型式'] || '';
           高度 = g['NON-高度(米)'] || '';
-        
+          
           const 原始改善 = (g['NON-檢查與改善'] || '').split(',').map(s => s.trim());
           let non_check = '';
-        
+          let otherItems = [];
+          
           原始改善.forEach(txt => {
-            if (txt.includes('拉線') && txt.includes('檢查合格')) {
+            if (/拉線.*條.*絞線.*檢查合格/.test(txt)) {
               const qty = g['NON-拉線數量'] || '';
               const type = g['NON-拉線種類'] || '';
               non_check += `拉線${qty}條${type}檢查合格，`;
-            } else if (txt.includes('檢查合格')) {
+            } else if (/檢查合格/.test(txt)) {
               non_check += `${g['NON-型式'] || ''}檢查合格，`;
             } else {
-              non_check += txt + '，';
+              otherItems.push(txt);
             }
           });
-        
+          
+          non_check += otherItems.join('，') + '，';
           resl = non_check;
+
         } else {
           // ✅ 改寫一般 resl 組合（鐵塔型態）
           if (g['1-1_鐵塔_角度'] === '合格') resl += '鐵塔角度合格，';
@@ -329,9 +332,11 @@ function renderTable(rows) {
           g['6_其他事項']
         ].filter(Boolean).join('，');
         const 除草判斷 = g['5_除草'] === '是' ? '以及除草' : '';
+
+        // ✅ 加入共用備註與除草資訊
         resl += (共用備註 ? `，${共用備註}` : '') + (除草判斷 ? `，${除草判斷}` : '');
         
-        // ✅ 清理重複標點、補上句點
+        // ✅ 清理重複標點、補上句點 整理標點與結尾
         resl = resl.replace(/，{2,}/g, '，').replace(/，$/, '。').replace(/。$/, '。');
 
     
