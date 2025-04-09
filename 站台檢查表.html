@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V41</h2>
+<h2>📋 站台年度檢查紀錄V42</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -328,7 +328,8 @@ function renderTable(rows) {
         
         //  加入除草判斷前，若結尾為"，"，先移除
         if (除草判斷) {
-          resl = resl.replace(/，$/, ''); // 移除結尾的逗號
+          // 如果前面已經有「，以及」或已經逗號結尾，則刪掉末尾逗號再加除草
+          resl = resl.replace(/，+$/, ''); // 🔁 移除所有連續的結尾逗號
           resl += `，${除草判斷}`;
         }
         
