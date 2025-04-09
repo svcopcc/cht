@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V53</h2>
+<h2>📋 站台年度檢查紀錄V54</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -452,16 +452,23 @@ function buildTableHeaders() {
 function logDebug(msg) {
   console.log('[debug]', msg);
   const debugDiv = document.getElementById('debug');
-  if (debugDiv) {
-    debugDiv.innerHTML = '> ' + msg + '\n';
+  if (!debugDiv) return;
 
-    // ✅ 如果訊息內容有「成功載入」，3 秒後清空 debug 區域
-    if (msg.includes('成功載入')) {
-      setTimeout(() => {
+  // 顯示訊息
+  debugDiv.innerHTML = '> ' + msg + '\n';
+
+  // ✅ 僅當訊息為「成功載入 N 筆資料」時，自動 3 秒後清空
+  const successLoadRegex = /^✅ 成功載入 \d+ 筆資料$/;
+  if (successLoadRegex.test(msg.trim())) {
+    setTimeout(() => {
+      // 若內容沒變（使用者沒有手動寫入其他東西），就清除
+      if (debugDiv.innerText.trim() === '> ' + msg.trim()) {
         debugDiv.innerHTML = '';
-      }, 3000); // 3 秒後自動清除
-    }
+      }
+    }, 3000);
   }
+
+  
 }
   
 </script>
