@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V44</h2>
+<h2>📋 站台年度檢查紀錄V45</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -366,11 +366,6 @@ function renderTable(rows) {
         <!-- #END_預設隱藏 -->
                
         data.forEach((v, i) => {
-          // 隱藏 
-          if (hiddenCols.includes(headers[i])) {
-            td.style.display = 'none';
-          }
-          
           const td = document.createElement('td');
           td.textContent = v || '';
           if (i === 0) td.classList.add('tsCol');
@@ -378,6 +373,12 @@ function renderTable(rows) {
             const cls = getScoreColor(v);
             if (cls) td.classList.add(cls); // 防止空值
           }
+
+          // 隱藏功能 
+          if (hiddenCols.includes(headers[i])) {
+            td.style.display = 'none';
+          }
+          
           tr.appendChild(td);
         });
         tableBody.appendChild(tr);
