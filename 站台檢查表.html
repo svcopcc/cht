@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V46</h2>
+<h2>📋 站台年度檢查紀錄V47</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -115,6 +115,9 @@ headers.forEach(h => {
   th.textContent = h;
   th.classList.add('sticky');
   if (h === '時間戳記') th.classList.add('tsCol');
+
+  if (hiddenCols.includes(h)) th.style.display = 'none'; // ✅ 預設隱藏標題
+  
   headerRow.appendChild(th);
 });
 
@@ -396,20 +399,23 @@ function toggleCols(colNames) {
     const idx = headers.indexOf(colName);
     if (idx === -1) return;
 
-    // 檢查目前 header 欄位是否顯示
-    const isHidden = headerCells[idx].style.display === 'none';
+    // 判斷目前是否隱藏
+    const isHidden = headerCells[idx]?.style.display === 'none';
 
-    // 切換顯示狀態：若原本是隱藏，就顯示；否則就隱藏
+    // 切換顯示狀態：如果是隱藏就顯示，否則就隱藏
     const displayStyle = isHidden ? '' : 'none';
 
+    // ✅ 顯示或隱藏標題列 (th)
     if (headerCells[idx]) headerCells[idx].style.display = displayStyle;
 
+    // ✅ 顯示或隱藏資料列 (td)
     bodyRows.forEach(row => {
       const cell = row.children[idx];
       if (cell) cell.style.display = displayStyle;
     });
   });
 }
+
 
 // 檢查密碼並顯示私密欄位
 function checkPassword() {
