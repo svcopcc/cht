@@ -67,7 +67,7 @@
 let allRows = [];
 //舊
 //const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
-//新
+//新  //自訂資料
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxf_VkN9MaMDWj5sQTlvcx-9WtEypM-b7gUCltbO922I3KrHJtxN0-WNqCtiB8LyIKJnOBQZEOU00u/pub?output=csv';
 //✅ 隱藏原始 Google Sheet 連結
 //const csvUrl = 'https://script.google.com/macros/s/AKfycbxtNmgzoQxqZHqrz9am2x_lzF-atVEfUx06Eqq5Td_3iR8hyjYRjeP-5ocM9P9G9sgq/exec'; 
@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.59');
+  logDebug('✅ 目前版本為2025.4.9.v.60');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -187,6 +187,8 @@ function loadSheet() {
       // 👉 👉👉👉👉👉👉👉👉👉👉👉👉👉👉如要更換預設年度，請改這裡的值
       const defaultYear = '114';
       filterByYear(defaultYear);
+
+      loadGcuSheet(); // ← 載入 gcu 的表單資料，建立 map //上期維護
       
       //renderTable(allRows);
     }
@@ -441,6 +443,7 @@ function toggleCols(colNames) {
 // 檢查密碼並顯示私密欄位
 function checkPassword() {
   const val = document.getElementById('secretPwd').value;
+  //自訂資料 
   if (val === '5566') {
     toggleCols(['私密備註']);
   } else {
@@ -495,6 +498,34 @@ function logDebug(msg) {
 
   
 }
+
+<!--  📌 第二份 Google 表單資料（gcu）處理邏輯 上期維護 -->
+const gcuUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGt73fpm3hhrIrsy3eCGRqYnZRoJN73NUaBaKRU6ILfAz9Tf20umubtZGuT0Q9bS8md_WkLVS4IFzv/pub?output=csv';
+let gcuMap = {};
+let year_gcu = '114'; // 🔁 可自訂指定要比對哪個年度的資料 //自訂資料
+
+function loadGcuSheet() {
+  Papa.parse(gcuUrl, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(res) {
+      const data = res.data.filter(g => g['年度設定'] === year_gcu);
+      gcuMap = {};
+      data.forEach(row => {
+        const name = (row['基地台名稱'] || '').trim();
+        if (name) {
+          gcuMap[name] = row['上期維護'];
+        }
+      });
+      console.log('✅ GCU 已建立比對 map：', gcuMap);
+      // 👇 重新渲染一次畫面，讓上期維護欄填入資料
+      const currentYear = getSelectedYear();
+      filterByYear(currentYear);
+    }
+  });
+}
+<!-- END_ 📌 第二份 Google 表單資料（gcu）處理邏輯 上期維護 -->
   
 </script>
 </body>
