@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V48</h2>
+<h2>📋 站台年度檢查紀錄V49</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -116,7 +116,7 @@ headers.forEach(h => {
   th.classList.add('sticky');
   if (h === '時間戳記') th.classList.add('tsCol');
 
-  //if (hiddenCols.includes(h)) th.style.display = 'none'; // ✅ 預設隱藏標題
+  if (hiddenCols.includes(h)) th.style.display = 'none'; // ✅ 預設隱藏標題
   
   headerRow.appendChild(th);
 });
