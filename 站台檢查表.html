@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V40</h2>
+<h2>📋 站台年度檢查紀錄V41</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -316,15 +316,26 @@ function renderTable(rows) {
           g['4_其他_備註'],
           g['6_其他事項']
         ].filter(Boolean).join('，');
-        const 除草判斷 = g['5_除草'] === '是' ? '以及除草' : '';
+        
 
         // ✅ 加入共用備註與除草資訊
-        resl += (共用備註 ? `，${共用備註}` : '') + (除草判斷 ? `，${除草判斷}` : '');
+        
+        const 除草判斷 = g['5_除草'] === '是' ? '以及除草' : '';
+        //  加入共用備註
+        if (共用備註) {
+          resl += `，${共用備註}`;
+        }
+        
+        //  加入除草判斷前，若結尾為"，"，先移除
+        if (除草判斷) {
+          resl = resl.replace(/，$/, ''); // 移除結尾的逗號
+          resl += `，${除草判斷}`;
+        }
         
         // ✅ 清理重複標點、補上句點 整理標點與結尾
         resl = resl.replace(/，{2,}/g, '，'); // 避免連續逗號
         resl = resl.replace(/，。$/, '。');   // 處理錯誤的「，。」結尾
-        resl = resl.replace(/，$/, '。');  
+        resl = resl.replace(/，$/, '。');   // 若結尾是「，」，改為「。」
         if (!resl.endsWith('。')) {
           resl += '。'; // 若沒有句點，就補上
         }
