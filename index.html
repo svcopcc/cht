@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.60');
+  logDebug('✅ 目前版本為2025.4.9.v.61');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -185,6 +185,7 @@ function loadSheet() {
 
       // ✅👉👉👉👉👉👉👉👉👉👉👉 [預設只顯示年度設定為 114 的資料]
       // 👉 👉👉👉👉👉👉👉👉👉👉👉👉👉👉如要更換預設年度，請改這裡的值
+      //自行設定
       const defaultYear = '114';
       filterByYear(defaultYear);
 
@@ -377,9 +378,10 @@ function renderTable(rows) {
           resl += '。'; // 若沒有句點，就補上
         }
 
+        const 上期維護 = gcuMap[g['站台名稱']] || '';
     
         const data = [
-          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
+          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, 上期維護,
           本次檢查, resl, '', '', 西元檢查日期, g['7_評分'], 私密備註,
           拆台, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
           g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
