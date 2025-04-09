@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V43</h2>
+<h2>📋 站台年度檢查紀錄V44</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -34,7 +34,13 @@
 
 <!-- 篩選控制區 -->
 <div style="margin-bottom: 1em;">
-  <button onclick="filterByCustomYear()">按鈕區</button>
+  <button onclick="toggleCols(['時間戳記', '西元檢查日期'])">顯示時間戳記</button>
+  <button onclick="toggleCols(['3G拆台紀錄/施工人員','主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'])">顯示3G拆台資料</button>
+  
+  <label style="margin-left: 1em;">密碼：
+    <input type="password" id="secretPwd" />
+    <button onclick="checkPassword()">解密</button>
+  </label>
 </div>
   
   
@@ -351,7 +357,20 @@ function renderTable(rows) {
         ];
 
         const tr = document.createElement('tr');
+
+        <!-- 預設隱藏 -->
+        // 預設要隱藏的欄位名稱
+        const hiddenCols = ['時間戳記','完成日期','西元檢查日期','私密備註','3G拆台紀錄/施工人員',
+          '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)',
+          '電錶箱/配電箱(只)','錢錢'];
+        <!-- #END_預設隱藏 -->
+               
         data.forEach((v, i) => {
+          // 隱藏 
+          if (hiddenCols.includes(headers[i])) {
+            td.style.display = 'none';
+          }
+          
           const td = document.createElement('td');
           td.textContent = v || '';
           if (i === 0) td.classList.add('tsCol');
@@ -365,6 +384,41 @@ function renderTable(rows) {
   });
 }
 
+<!-- 顯示隱藏表格 -->
+// 根據欄位標題名稱顯示欄位
+function toggleCols(colNames) {
+  const headerCells = document.querySelectorAll('#headerRow th');
+  const bodyRows = document.querySelectorAll('#dataBody tr');
+
+  colNames.forEach(colName => {
+    const idx = headers.indexOf(colName);
+    if (idx === -1) return;
+
+    // 顯示表頭
+    if (headerCells[idx]) {
+      headerCells[idx].style.display = '';
+    }
+
+    // 顯示每一列資料
+    bodyRows.forEach(row => {
+      const cell = row.children[idx];
+      if (cell) {
+        cell.style.display = '';
+      }
+    });
+  });
+}
+
+// 檢查密碼並顯示私密欄位
+function checkPassword() {
+  const val = document.getElementById('secretPwd').value;
+  if (val === '5566') {
+    toggleCols(['私密備註']);
+  } else {
+    alert('密碼錯誤');
+  }
+}
+<!-- #END_顯示隱藏表格 -->
 
 function logDebug(msg) {
   console.log('[debug]', msg);
