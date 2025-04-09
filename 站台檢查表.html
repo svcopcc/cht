@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V50</h2>
+<h2>📋 站台年度檢查紀錄V51</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -117,16 +117,16 @@ document.getElementById('customYear').addEventListener('input', loadSheet);
 
 const headerRow = document.getElementById('headerRow');
 const tableBody = document.getElementById('dataBody');
-headers.forEach(h => {
-  const th = document.createElement('th');
-  th.textContent = h;
-  th.classList.add('sticky');
-  if (h === '時間戳記') th.classList.add('tsCol');
+//headers.forEach(h => {
+//  const th = document.createElement('th');
+//  th.textContent = h;
+//  th.classList.add('sticky');
+//  if (h === '時間戳記') th.classList.add('tsCol');
 
-  if (hiddenCols.includes(h)) th.style.display = 'none'; // ✅ 預設隱藏標題
+//  if (hiddenCols.includes(h)) th.style.display = 'none'; // ✅ 預設隱藏標題
   
-  headerRow.appendChild(th);
-});
+//  headerRow.appendChild(th);
+//});
 
 function buildResl(g) {
   let resl = '';
@@ -210,7 +210,10 @@ function filterByYear(year) {
 
 
 function renderTable(rows) {
+  buildTableHeaders();         // ✅ 重建表格標題
   tableBody.innerHTML = '';
+  
+  //headerRow.innerHTML = ''; // ✅ 加在這裡（清除舊標題） 每次切換篩選重新隱藏不顯示的標題欄位
 
   if (!rows.length) {
     const tr = document.createElement('tr');
@@ -429,6 +432,22 @@ function checkPassword() {
   }
 }
 <!-- #END_顯示隱藏表格 -->
+
+
+// 🔧 抽成獨立函式：建立表頭
+function buildTableHeaders() {
+  headerRow.innerHTML = ''; // ✅ 清除舊標題再重建
+
+  headers.forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    th.classList.add('sticky'); // 讓標題固定
+    if (hiddenCols.includes(h)) {
+      th.style.display = 'none'; // ✅ 若此欄需隱藏，隱藏 <th>
+    }
+    headerRow.appendChild(th);
+  });
+}
 
 function logDebug(msg) {
   console.log('[debug]', msg);
