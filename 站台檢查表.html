@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V51</h2>
+<h2>📋 站台年度檢查紀錄V52</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -36,7 +36,7 @@
 <div style="margin-bottom: 1em;">
   <button onclick="toggleCols(['時間戳記', '西元檢查日期'])">顯示時間戳記</button>
   <button onclick="toggleCols(['3G拆台紀錄/施工人員','主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)','電錶箱/配電箱(只)','錢錢'])">顯示3G拆台資料</button>
-  
+  <button onclick="toggleCols(['評分'])">顯示評分</button>
   <label style="margin-left: 1em;">密碼：
     <input type="password" id="secretPwd" />
     <button onclick="checkPassword()">解密</button>
@@ -63,7 +63,7 @@ const headers = ['時間戳記','基地台名稱','轄區','型式','高度(米)
 // 預設要隱藏的欄位名稱
 const hiddenCols = ['時間戳記','完成日期','西元檢查日期','私密備註','3G拆台紀錄/施工人員',
   '主體設備(系統/射頻/電力)','Pipe(支)','室外型天線(支)','SMR(組)','Mini shelter/小型機櫃(只)',
-  '電錶箱/配電箱(只)','錢錢'];
+  '電錶箱/配電箱(只)','錢錢','評分'];
 <!-- #END_預設隱藏 -->
 
 function toTWDate(iso) {
