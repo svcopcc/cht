@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V42</h2>
+<h2>📋 站台年度檢查紀錄V43</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -124,8 +124,11 @@ function buildResl(g) {
 
   
 function loadSheet() {
+  <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('目前為2025/4/9版本');
+  logDebug('✅ 目前為2025/4/9版本');
+  <!-- #END_公告區  -->
+  
   const box = document.getElementById('loadingBox');
   if (box) box.style.display = 'block';
 
@@ -189,11 +192,6 @@ function filterByYear(year) {
   renderTable(filtered);
 }
 
-function filterByCustomYear() {
-  const year = document.getElementById('customYear').value.trim();
-  const filtered = allRows.filter(g => (g['年度設定'] || '').trim() === year);
-  renderTable(filtered);
-}
 
 function renderTable(rows) {
   tableBody.innerHTML = '';
