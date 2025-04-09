@@ -22,7 +22,14 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄</h2>
+  //標題
+<h2>
+  <a href="https://svcopcc.github.io/cht/" target="_blank" style="text-decoration: none; display: inline-flex; align-items: center;">
+    <img src="https://i.imgur.com/bgRG0SJ.png" alt="icon" style="height: 1em; vertical-align: middle; margin-right: 0.3em;">
+    站台年度檢查紀錄
+  </a>
+</h2>
+
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -149,7 +156,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.55');
+  logDebug('✅ 目前版本為2025.4.9.v.56');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
