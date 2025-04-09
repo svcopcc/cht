@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V37</h2>
+<h2>📋 站台年度檢查紀錄V38</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -322,7 +322,11 @@ function renderTable(rows) {
         resl += (共用備註 ? `，${共用備註}` : '') + (除草判斷 ? `，${除草判斷}` : '');
         
         // ✅ 清理重複標點、補上句點 整理標點與結尾
-        resl = resl.replace(/，{2,}/g, '，').replace(/，$/, '。').replace(/。$/, '。');
+        resl = resl.replace(/，{2,}/g, '，'); // 避免連續逗號
+        resl = resl.replace(/，。$/, '。');   // 處理錯誤的「，。」結尾
+        if (!resl.endsWith('。')) {
+          resl += '。'; // 若沒有句點，就補上
+        }
 
     
         const data = [
