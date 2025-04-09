@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h2>📋 站台年度檢查紀錄V45</h2>
+<h2>📋 站台年度檢查紀錄V46</h2>
 
 <!-- 載入黃色區 -->
 <div id="debug" style="background: #fffbe6; color: #333; padding: 1em; margin-top: 1em; border: 1px dashed #aaa; font-size: 0.9em; white-space: pre-wrap;"></div>
@@ -387,6 +387,7 @@ function renderTable(rows) {
 
 <!-- 顯示隱藏表格 -->
 // 根據欄位標題名稱顯示欄位
+// ✅ 根據欄位標題顯示/隱藏欄位（支援切換）
 function toggleCols(colNames) {
   const headerCells = document.querySelectorAll('#headerRow th');
   const bodyRows = document.querySelectorAll('#dataBody tr');
@@ -395,17 +396,17 @@ function toggleCols(colNames) {
     const idx = headers.indexOf(colName);
     if (idx === -1) return;
 
-    // 顯示表頭
-    if (headerCells[idx]) {
-      headerCells[idx].style.display = '';
-    }
+    // 檢查目前 header 欄位是否顯示
+    const isHidden = headerCells[idx].style.display === 'none';
 
-    // 顯示每一列資料
+    // 切換顯示狀態：若原本是隱藏，就顯示；否則就隱藏
+    const displayStyle = isHidden ? '' : 'none';
+
+    if (headerCells[idx]) headerCells[idx].style.display = displayStyle;
+
     bodyRows.forEach(row => {
       const cell = row.children[idx];
-      if (cell) {
-        cell.style.display = '';
-      }
+      if (cell) cell.style.display = displayStyle;
     });
   });
 }
