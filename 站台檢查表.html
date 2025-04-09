@@ -295,7 +295,7 @@ function renderTable(rows) {
             if (txt === '拉線XX條XX絞線合格') {
               const qty = g['NON-拉線數量'] || '';
               const type = g['NON-拉線種類'] || '';
-              non_check += `拉線${qty}條${type}檢查合格（原始填寫：${txt}），`;
+              non_check += `拉線${qty}條${type}檢查合格，`;
             } else if (/XX檢查合格/.test(txt)) {
               non_check += `${g['NON-型式'] || ''}檢查合格，`;
             } else {
