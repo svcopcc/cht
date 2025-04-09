@@ -65,7 +65,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 let allRows = [];
+//舊
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTnvECTbipdQIBkYB1-s4MgjWbTVQc5KkvoQuamlv8u7Q7rUCoV4TMpWfg4v2zowFRQNwhHWDnO9_n1/pub?output=csv';
+//新
+const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxf_VkN9MaMDWj5sQTlvcx-9WtEypM-b7gUCltbO922I3KrHJtxN0-WNqCtiB8LyIKJnOBQZEOU00u/pub?output=csv';
 //✅ 隱藏原始 Google Sheet 連結
 //const csvUrl = 'https://script.google.com/macros/s/AKfycbxtNmgzoQxqZHqrz9am2x_lzF-atVEfUx06Eqq5Td_3iR8hyjYRjeP-5ocM9P9G9sgq/exec'; 
 const headers = ['時間戳記','基地台名稱','轄區','型式','高度(米)','上期維護','本次檢查','檢查與改善',
@@ -155,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.58');
+  logDebug('✅ 目前版本為2025.4.9.v.59');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
