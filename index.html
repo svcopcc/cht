@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.63');
+  logDebug('✅ 目前版本為2025.4.9.v.64');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -187,9 +187,10 @@ function loadSheet() {
       // 👉 👉👉👉👉👉👉👉👉👉👉👉👉👉👉如要更換預設年度，請改這裡的值
       //自行設定
       const defaultYear = '114';
-      filterByYear(defaultYear);
+      //filterByYear(defaultYear);
 
-      loadGcuSheet(); // ← 載入 gcu 的表單資料，建立 map //上期維護
+      //loadGcuSheet(); // ← 載入 gcu 的表單資料，建立 map //上期維護
+      loadGcuSheet(defaultYear);
       
       //renderTable(allRows);
     }
