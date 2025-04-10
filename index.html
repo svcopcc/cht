@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.59');
+  logDebug('✅ 目前版本為2025.4.9.v.A1');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -216,7 +216,8 @@ document.getElementById('customYearBtn').addEventListener('click', () => {
 
 //--------
   
-loadSheet();
+// 載入 GCU + 再載入主表單資料
+loadGCUandThenMainSheet();
 
 
 function filterByYear(year) {
@@ -224,7 +225,34 @@ function filterByYear(year) {
   renderTable(filtered);
 }
 
+<!-- ✅ 全域變數存 gcu 上期維護資料 -->
+let gcuMap = new Map();
+const gcuUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGt73fpm3hhrIrsy3eCGRqYnZRoJN73NUaBaKRU6ILfAz9Tf20umubtZGuT0Q9bS8md_WkLVS4IFzv/pub?output=csv';
 
+function loadGCUandThenMainSheet() {
+  Papa.parse(gcuUrl, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      const year_gcu = '114';
+      const rows = results.data || [];
+
+      gcuMap.clear();
+      rows.forEach(row => {
+        if ((row['年度設定'] || '').trim() === year_gcu) {
+          gcuMap.set((row['基地台名稱'] || '').trim(), (row['上期維護'] || '').trim());
+        }
+      });
+
+      logDebug(`✅ GCU 已建立比對 map，共 ${gcuMap.size} 筆`);
+      logDebug(`📎 將使用年度 ${year_gcu} 的上期維護資料進行比對`);
+      loadSheet(); // 這時再載入主表單
+    }
+  });
+}
+<!-- #END_✅ 全域變數存 gcu 上期維護資料 -->
+  
 function renderTable(rows) {
   buildTableHeaders();         // ✅ 重建表格標題
   tableBody.innerHTML = '';
@@ -377,7 +405,8 @@ function renderTable(rows) {
 
     
         const data = [
-          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, '',
+          g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, 
+          gcuMap.get((g['站台名稱'] || '').trim()) || '',  // ✅ 上期維護
           本次檢查, resl, '', '', 西元檢查日期, g['7_評分'], 私密備註,
           拆台, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
           g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
