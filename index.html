@@ -159,7 +159,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.69');
+  logDebug('✅ 目前版本為2025.4.9.v.70');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -526,7 +526,14 @@ function loadGcuSheet(defaultYear) {
     header: true,
     skipEmptyLines: true,
     complete: function(res) {
-      const data = res.data.filter(g => g['年度設定'] === year_gcu);
+      
+      const raw = res.data;
+      const data = raw.filter(g => (g['年度設定'] || '').trim() === year_gcu);
+      if (data.length === 0) {
+        logDebug(`⚠️ GCU 找不到符合年度 ${year_gcu} 的資料！`);
+      }
+
+      
       gcuMap = {};
       data.forEach(row => {
         const name = (row['基地台名稱'] || '').trim();
