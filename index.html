@@ -159,7 +159,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.68');
+  logDebug('✅ 目前版本為2025.4.9.v.69');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -226,12 +226,14 @@ loadSheet();
 function filterByYear(year) {
   const filtered = allRows.filter(g => (g['年度設定'] || '').trim() === year);
 
-  if (year === '114' && !gcuLoaded) {
-    year_gcu = '114';
-    gcuLoaded = true; // ✅ 設定已載入
-    loadGcuSheet();   // ✅ 不再傳入 year，避免遞迴
-    return;           // 等 GCU 載完後才 render
+  if (year === year_gcu && !gcuLoaded) {
+    gcuLoaded = true;
+    loadGcuSheet(() => {
+      renderTable(filtered);  // ✅ 在 GCU 載入完才 render
+    });
+    return;
   }
+  renderTable(filtered);  // ✅ 若不是 114 或 GCU 已載入就直接 render
 
   renderTable(filtered);
 }
@@ -536,8 +538,9 @@ function loadGcuSheet(defaultYear) {
       logDebug(`✅ GCU 已建立比對 map，共 ${Object.keys(gcuMap).length} 筆`);
       logDebug(`📎 將使用年度 ${year_gcu} 的上期維護資料進行比對`);
       
-      // ✅ 渲染主資料表（等 gcuMap 準備好再做）
-      filterByYear(year_gcu); // ✅ 最後只呼叫一次（不再進入無限迴圈）
+      if (typeof callback === 'function') {
+        callback(); // ✅ 這裡才觸發 renderTable()
+      }
     }
   });
 }
