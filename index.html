@@ -157,8 +157,8 @@ function buildResl(g) {
   
 function loadSheet() {
   <!-- 公告區  -->
-  logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.A9');
+  logDebug('📦 開始載入表單資料...');
+  logDebug('✅ 目前版本為2025.4.11.v.A10');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -185,7 +185,7 @@ function loadSheet() {
 
       // ✅👉👉👉👉👉👉👉👉👉👉👉 [預設只顯示年度設定為 114 的資料]
       // 👉 👉👉👉👉👉👉👉👉👉👉👉👉👉👉如要更換預設年度，請改這裡的值
-      const defaultYear = '114';
+      const defaultYear = '114';  //自行設定   //預設進入網頁顯示年度
       filterByYear(defaultYear);
       
       //renderTable(allRows);
@@ -237,16 +237,15 @@ function loadGCUandThenMainSheet() {
     header: true,
     skipEmptyLines: true,
     complete: function(results) {
-      const year_gcu = '114';
+      const year_gcu = '114';  //自行設定  //上期維護要比對填寫的年度 //只有符合此年度設定才會填寫
       const rows = results.data || [];
       window.year_gcu = year_gcu;    // ✅ 存為全域
       window.gcuRows = rows;         // ✅ 儲存整包 GCU 資料
 
       window.gcuRows = rows; // 全域儲存 GCU 資料，不先建 map
       logDebug(`✅ GCU 載入完成，共 ${rows.length} 筆`);
-      logDebug(`📎 將使用年度 ${year_gcu} 比對「上期維護」欄位`);
+      logDebug(`📎 將使用年度 ${year_gcu} 填寫「上期維護」欄位`);
       
-      logDebug(`📎 將使用年度 ${year_gcu} 的上期維護資料進行比對`);
       loadSheet(); // 這時再載入主表單
     }
   });
@@ -484,7 +483,7 @@ function toggleCols(colNames) {
 // 檢查密碼並顯示私密欄位
 function checkPassword() {
   const val = document.getElementById('secretPwd').value;
-  if (val === '5566') {
+  if (val === '5566') {  //自行設定 //密碼
     toggleCols(['私密備註']);
   } else {
     alert('密碼錯誤');
