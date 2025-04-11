@@ -157,8 +157,8 @@ function buildResl(g) {
   
 function loadSheet() {
   <!-- 公告區  -->
-  logDebug('📦 開始載入表單資料...');
-  logDebug('✅ 目前版本為2025.4.11.v.A10');
+  logDebug('✅ 開始載入表單資料...');
+  logDebug('💠 目前版本: 2025.4.11.v.A10 💠');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -244,7 +244,7 @@ function loadGCUandThenMainSheet() {
 
       window.gcuRows = rows; // 全域儲存 GCU 資料，不先建 map
       logDebug(`✅ GCU 載入完成，共 ${rows.length} 筆`);
-      logDebug(`📎 將使用年度 ${year_gcu} 填寫「上期維護」欄位`);
+      logDebug(`✅ 將使用年度 ${year_gcu} 填寫「上期維護」欄位`);
       
       loadSheet(); // 這時再載入主表單
     }
