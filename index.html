@@ -158,7 +158,7 @@ function buildResl(g) {
 function loadSheet() {
   <!-- 公告區  -->
   logDebug('📦 開始載入資料...');
-  logDebug('✅ 目前版本為2025.4.9.v.A7');
+  logDebug('✅ 目前版本為2025.4.9.v.A8');
   <!-- #END_公告區  -->
   
   const box = document.getElementById('loadingBox');
@@ -239,22 +239,13 @@ function loadGCUandThenMainSheet() {
     complete: function(results) {
       const year_gcu = '114';
       const rows = results.data || [];
+      window.year_gcu = year_gcu;    // ✅ 存為全域
+      window.gcuRows = rows;         // ✅ 儲存整包 GCU 資料
 
-      gcuMap.clear();
-      rows.forEach(row => {
-        //測試
-        const rawYear = row['年度設定'];
-        logDebug(`🧪 讀到rawYear設定：${rawYear}`);
-        
-        if ((row['年度設定'] || '').trim() === year_gcu) {
-          const name = (row['基地台名稱'] || '').trim();
-          const prev = (row['上期維護'] || '').trim();
-          gcuMap.set(name, prev);
-          logDebug(`📌 if內: GCU 站台名稱：${name}`); //logdebug 顯示讀取到的gcu.基地台名稱
-        }
-      });
-
-      logDebug(`✅ GCU 已建立比對 map，共 ${gcuMap.size} 筆`);
+      window.gcuRows = rows; // 全域儲存 GCU 資料，不先建 map
+      logDebug(`✅ GCU 載入完成，共 ${rows.length} 筆`);
+      logDebug(`📎 將使用年度 ${year_gcu} 比對「上期維護」欄位`);
+      
       logDebug(`📎 將使用年度 ${year_gcu} 的上期維護資料進行比對`);
       loadSheet(); // 這時再載入主表單
     }
@@ -415,7 +406,7 @@ function renderTable(rows) {
     
         const data = [
           g['時間戳記'], g['站台名稱'], g['轄區(高雄、鳳山....)'], 型式, 高度, 
-          gcuMap.get((g['站台名稱'] || '').trim()) || '',  // ✅ 上期維護
+          上期維護,  // ✅ 上期維護
           本次檢查, resl, '', '', 西元檢查日期, g['7_評分'], 私密備註,
           拆台, g['8.1_3G拆台_數量 [主體設備(系統/射頻/電力)]'],
           g['8.1_3G拆台_數量 [Pipe(支)]'], g['8.1_3G拆台_數量 [室外型天線(支)]'],
@@ -423,6 +414,21 @@ function renderTable(rows) {
           g['8.1_3G拆台_數量 [電錶箱/配電箱(只)]'], 錢錢, g['年度設定']
         ];
 
+        <!-- 上期維護 -->
+        let 上期維護 = '';
+        // ✅ 當 gc.年度設定 === year_gcu 時才進行 GCU 比對
+        const baseName = (g['站台名稱'] || '').trim();
+        const currentYear = (g['年度設定'] || '').trim();
+        
+        if (currentYear === window.year_gcu && window.gcuRows) {
+          const match = window.gcuRows.find(row => (row['基地台名稱'] || '').trim() === baseName);
+          if (match) {
+            上期維護 = (match['上期維護'] || '').trim();
+          }
+        }
+        <!-- END_上期維護 -->
+
+    
         const tr = document.createElement('tr');
 
         
