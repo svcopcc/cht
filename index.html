@@ -243,8 +243,8 @@ function loadGCUandThenMainSheet() {
       gcuMap.clear();
       rows.forEach(row => {
         //測試
-        //const rawYear = row['年度設定'];
-        //logDebug(`🧪 讀到rawYear設定：${rawYear}`);
+        const rawYear = row['年度設定'];
+        logDebug(`🧪 讀到rawYear設定：${rawYear}`);
         
         if ((row['年度設定'] || '').trim() === year_gcu) {
           const name = (row['基地台名稱'] || '').trim();
