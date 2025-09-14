@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>站台檢查表</title>
   <!-- favicon 標籤頁logo -->
-  <link rel="icon" href="../VELVET_favicon.ico" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" type="image/svg+xml">
   
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
@@ -57,6 +57,12 @@
     <input type="password" id="secretPwd" />
     <button onclick="checkPassword()">解密</button>
   </label>
+
+  
+  <!-- 匯出JSON -->
+  <button onclick="exportVisibleTableToJson()" style="margin-left: 2em;">匯出 JSON</button>
+  <button onclick="copyVisibleTableToClipboard()">📋 複製 JSON</button>
+  
 </div>
   
   
@@ -540,6 +546,99 @@ function logDebug(msg) {
 
   
 }
+
+  // 開始_匯出JSON 
+  function exportVisibleTableToJson() {
+    const table = document.getElementById("dataTable");
+    const headers = [];
+    const headerCells = table.querySelectorAll("thead tr th");
+  
+    // 取得可見欄位名稱
+    headerCells.forEach(th => {
+      if (th.style.display !== "none") {
+        headers.push(th.innerText.trim());
+      }
+    });
+  
+    const data = [];
+    const rows = table.querySelectorAll("tbody tr");
+  
+    rows.forEach(tr => {
+      const rowData = {};
+      const cells = tr.querySelectorAll("td");
+      let visibleIndex = 0;
+  
+      for (let i = 0; i < cells.length; i++) {
+        const td = cells[i];
+        if (td.style.display === "none") continue;
+  
+        const header = headers[visibleIndex++];
+        rowData[header] = td.innerText.trim();
+      }
+  
+      // 跳過空列
+      if (Object.keys(rowData).length > 0) {
+        data.push(rowData);
+      }
+    });
+  
+    // 匯出 JSON
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "畫面顯示資料.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  // #_匯出JSON 
+  
+  
+  // 開始_複製JSON 
+  function copyVisibleTableToClipboard() {
+    const table = document.getElementById("dataTable");
+    const headers = [];
+    const headerCells = table.querySelectorAll("thead tr th");
+  
+    // 收集可見欄位名稱
+    headerCells.forEach(th => {
+      if (th.style.display !== "none") {
+        headers.push(th.innerText.trim());
+      }
+    });
+  
+    const data = [];
+    const rows = table.querySelectorAll("tbody tr");
+  
+    rows.forEach(tr => {
+      const rowData = {};
+      const cells = tr.querySelectorAll("td");
+      let visibleIndex = 0;
+  
+      for (let i = 0; i < cells.length; i++) {
+        const td = cells[i];
+        if (td.style.display === "none") continue;
+  
+        const header = headers[visibleIndex++];
+        rowData[header] = td.innerText.trim();
+      }
+  
+      if (Object.keys(rowData).length > 0) {
+        data.push(rowData);
+      }
+    });
+  
+    const jsonString = JSON.stringify(data, null, 2);
+  
+    // 複製到剪貼簿
+    navigator.clipboard.writeText(jsonString).then(() => {
+      alert("✅ JSON 已複製到剪貼簿！");
+    }).catch(err => {
+      console.error("❌ 複製失敗：", err);
+      alert("❌ 複製失敗，請檢查瀏覽器權限");
+    });
+  }
+  //#_複製JSON 
   
 </script>
 </body>
