@@ -22,6 +22,22 @@
     .fade-out.hidden {
       opacity: 0;
     }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #28a745;   /* 綠色 */
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #218838;   /* 滑鼠移過去變深綠 */
+    }
+
+    
   </style>
 </head>
 <body>
@@ -62,7 +78,7 @@
   <!-- 匯出JSON -->
   <button onclick="exportVisibleTableToJson()" style="margin-left: 2em;">匯出 JSON</button>
   <button onclick="copyVisibleTableToClipboard()">📋 複製 JSON</button>
-  <a href="https://feixu.tw/cht/gd/index_if.html" target="_blank" class="link-button_fast">🔧 GD檢查工具人</a>
+  <a href="https://feixu.tw/cht/gd/index_if.html" target="_blank" class="btn" style="margin-left: 2em;">🔧 GD檢查工具人</a>
   
 </div>
   
